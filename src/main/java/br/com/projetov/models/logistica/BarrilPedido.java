@@ -9,11 +9,11 @@ public class BarrilPedido {
     private CapacidadeBarril capacidade;
     private double precoVendido; // O "Snapshot" do preço
 
-    public BarrilPedido(String codigoBarril, TipoChopp tipo, CapacidadeBarril capacidade, double volumeHistoricoCliente) {
+    public BarrilPedido(String codigoBarril, TipoChopp tipo, CapacidadeBarril capacidade, double precoCalculado) {
         this.codigoBarril = codigoBarril;
         this.tipo = tipo;
         this.capacidade = capacidade;
-        this.precoVendido = getPrecoVenda();
+        this.precoVendido = precoCalculado;
     }
 
     // Getters
