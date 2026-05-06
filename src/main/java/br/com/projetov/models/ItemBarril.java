@@ -1,4 +1,4 @@
-package br.com.projetov.model;
+package br.com.projetov.models;
 
 
 public class ItemBarril {
