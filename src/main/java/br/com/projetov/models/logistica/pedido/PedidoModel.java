@@ -42,4 +42,8 @@ public class PedidoModel {
     public String getNomeCliente() { return nomeCliente; }
     public String getEntregador() { return entregador; }
     public LocalDateTime getDataHora() { return dataHora; }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
 }

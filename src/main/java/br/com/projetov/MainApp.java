@@ -9,6 +9,13 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
+
+//    @Override
+//    public void init() throws Exception {
+//        //Executando antes da janela abrir
+//        SqliteConfig.inicializarBanco();
+//    }
+
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(

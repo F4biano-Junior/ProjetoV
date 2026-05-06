@@ -5,9 +5,14 @@ import br.com.projetov.config.SqliteConfig;
 
 public class Main {
     public static void main(String[] args) {
-        SqliteConfig.inicializarBanco();
-        System.out.println("O Sistema Vendas Chopp iniciou com sucesso!");
 
+        try {
+            SqliteConfig.inicializarBanco();
+            System.out.println("Banco de dados verificado com sucesso.");
+        } catch (Exception e) {
+            System.err.println("Erro fatal: Não foi possível preparar o banco de dados.");
+            e.printStackTrace();
+        }
         // comando que inicia a MainApp.java
         MainApp.launch(MainApp.class, args);
         }

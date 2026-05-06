@@ -61,7 +61,12 @@ public class PedidoController implements Initializable {
     private void handleAdicionarBarril() {
         // 1. Valida os campos do barril antes de qualquer operação
         if (!validarCamposBarril()) return;
-
+        // ← ADICIONAR ESTE BLOCO: sincroniza o nome do cliente no model
+        //    antes de qualquer consulta ao banco
+        String nomeCliente = txtCliente.getText().trim();
+        if (!nomeCliente.isBlank()) {
+            pedidoAtual.setNomeCliente(nomeCliente); // ← precisa do setter (ver abaixo)
+        }
         String codigo           = txtCodigoBarril.getText().trim();
         TipoChopp tipo          = cmbTipoChopp.getValue();
         CapacidadeBarril cap    = cmbCapacidade.getValue();

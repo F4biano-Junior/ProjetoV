@@ -66,12 +66,9 @@ public class PedidoRepository {
         }
     }
 public double buscarVolumeMensalCliente(String nomeCliente) {
-
         // validação de entrada
         if (nomeCliente == null || nomeCliente.isBlank()){
-            throw new IllegalArgumentException(
-                    "Nome do cliente não pode ser nulo ou vazio para buscar volume mensal"
-            );
+            return 0.0;
         }
 
     // SQL que soma os litros dos barris vendidos para o cliente nos últimos 30 dias
