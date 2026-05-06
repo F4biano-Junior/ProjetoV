@@ -30,6 +30,7 @@ public class SqliteConfig {
                     "tipo_chopp TEXT," +
                     "capacidade INTEGER," +
                     "preco_venda REAL," +
+                    "consignado INTEGER NOT NULL DEFAULT 0," +
                     "FOREIGN KEY (pedido_id) REFERENCES pedido(id))";
 
             stmt.executeUpdate(sqlPedido);

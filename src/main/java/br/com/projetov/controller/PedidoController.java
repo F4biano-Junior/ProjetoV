@@ -18,15 +18,26 @@ import java.util.ResourceBundle;
 public class PedidoController implements Initializable {
 
     // ── Campos do formulário ───────────────────────────────────────────────
-    @FXML private TextField txtCliente;
-    @FXML private TextField txtEntregador;
-    @FXML private TextField txtCodigoBarril;
-    @FXML private ComboBox<TipoChopp>      cmbTipoChopp;
-    @FXML private ComboBox<CapacidadeBarril> cmbCapacidade;
-    @FXML private ComboBox<TipoVenda>      cmbTipoVenda;
-    @FXML private ListView<String>         listViewBarris;
-    @FXML private Label                    lblTotal;
-    @FXML private Button                   btnFinalizar;
+    @FXML
+    private TextField txtCliente;
+    @FXML
+    private TextField txtEntregador;
+    @FXML
+    private TextField txtCodigoBarril;
+    @FXML
+    private ComboBox<TipoChopp> cmbTipoChopp;
+    @FXML
+    private ComboBox<CapacidadeBarril> cmbCapacidade;
+    @FXML
+    private ComboBox<TipoVenda> cmbTipoVenda;
+    @FXML
+    private ListView<String> listViewBarris;
+    @FXML
+    private Label lblTotal;
+    @FXML
+    private Button btnFinalizar;
+    @FXML
+    private CheckBox chkConsignado;
 
     // ── Estado interno ─────────────────────────────────────────────────────
     private PedidoModel pedidoAtual;
@@ -52,6 +63,8 @@ public class PedidoController implements Initializable {
         // Conecta a lista observável ao ListView — atualizações automáticas na UI
         listViewBarris.setItems(itensListView);
 
+        btnFinalizar.setDisable(true);// ← pedido vazio, não pode finalizar
+
         // Prepara o primeiro pedido em branco
         iniciarNovoPedido();
     }
@@ -67,14 +80,15 @@ public class PedidoController implements Initializable {
         if (!nomeCliente.isBlank()) {
             pedidoAtual.setNomeCliente(nomeCliente); // ← precisa do setter (ver abaixo)
         }
-        String codigo           = txtCodigoBarril.getText().trim();
-        TipoChopp tipo          = cmbTipoChopp.getValue();
-        CapacidadeBarril cap    = cmbCapacidade.getValue();
-        TipoVenda modalidade    = cmbTipoVenda.getValue();
+        String codigo = txtCodigoBarril.getText().trim();
+        TipoChopp tipo = cmbTipoChopp.getValue();
+        CapacidadeBarril cap = cmbCapacidade.getValue();
+//        TipoVenda modalidade    = cmbTipoVenda.getValue();
+        boolean consignado   = chkConsignado.isSelected();
 
         try {
             // 2. Delega ao Service — ele busca o volume mensal e calcula o preço
-            pedidoService.adicionarBarrilAoPedido(pedidoAtual, codigo, tipo, cap, modalidade);
+            pedidoService.adicionarBarrilAoPedido(pedidoAtual, codigo, tipo, cap, consignado);
 
             // 3. Atualiza a ListView com o toString() do barril recém-adicionado
             //    Pega o último item inserido na lista do model
@@ -86,8 +100,11 @@ public class PedidoController implements Initializable {
             // 4. Recalcula e exibe o total
             atualizarTotal();
 
-            // 5. Limpa apenas o campo de código para agilizar o próximo lançamento
+            btnFinalizar.setDisable(false); // 5. há pelo menos 1 barril, pode finalizar
+
+            // 6. Limpa apenas o campo de código para agilizar o próximo lançamento
             txtCodigoBarril.clear();
+            chkConsignado.setSelected(false);
 
         } catch (RuntimeException e) {
             mostrarAlerta(
@@ -97,6 +114,23 @@ public class PedidoController implements Initializable {
                     "Verifique a conexão com o banco de dados.\n\nDetalhe técnico: " + e.getMessage()
             );
         }
+    }
+
+    // Remove barril selecionado na ListView
+    @FXML
+    private void handleRemoverBarril() {
+        int index = listViewBarris.getSelectionModel().getSelectedIndex();
+        if (index < 0) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Nenhum item selecionado",
+                    "Selecione um barril na lista para remover.", "");
+            return;
+        }
+        // Remove do model e da ListView pelo mesmo Índice
+        String codigoBarril = pedidoAtual.getBarris().get(index).getCodigoBarril();
+        pedidoAtual.removerBarril(codigoBarril);
+        itensListView.remove(index);
+        atualizarTotal();
+        btnFinalizar.setDisable(itensListView.isEmpty()); // ← desabilita se voltou a zero
     }
 
     // ── Handler: Finalizar Pedido ──────────────────────────────────────────
@@ -151,6 +185,7 @@ public class PedidoController implements Initializable {
         cmbTipoVenda.setValue(null);
         itensListView.clear();
         lblTotal.setText("R$ 0,00");
+        chkConsignado.setSelected(false);
         iniciarNovoPedido();
     }
 
@@ -164,10 +199,13 @@ public class PedidoController implements Initializable {
     private void iniciarNovoPedido() {
         // Pedido começa com strings vazias; os campos reais são capturados
         // no momento de finalizar, garantindo que o usuário preencha antes de salvar
-        pedidoAtual = new PedidoModel("", "");
+        pedidoAtual = new PedidoModel("", "", null);
+        btnFinalizar.setDisable(true); // ← reseta junto com o pedido
     }
 
-    /** Recalcula e atualiza o Label de total com base nos barris do model. */
+    /**
+     * Recalcula e atualiza o Label de total com base nos barris do model.
+     */
     private void atualizarTotal() {
         double total = pedidoAtual.getBarris().stream()
                 .mapToDouble(b -> b.getSubtotal())
@@ -193,6 +231,12 @@ public class PedidoController implements Initializable {
             txtEntregador.requestFocus();
             return false;
         }
+        if (cmbTipoVenda.getValue() == null) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
+                    "Modalidade não selecionada", "Selecione PDV, Venda Direta ou consignação");
+            return false;
+        }
+
         if (pedidoAtual.getBarris().isEmpty()) {
             mostrarAlerta(Alert.AlertType.WARNING, "Pedido vazio",
                     "Nenhum barril adicionado", "Adicione pelo menos um barril antes de finalizar.");
@@ -203,22 +247,35 @@ public class PedidoController implements Initializable {
         // preservando os barris já adicionados
         PedidoModel pedidoFinal = new PedidoModel(
                 txtCliente.getText().trim(),
-                txtEntregador.getText().trim()
+                txtEntregador.getText().trim(),
+                cmbTipoVenda.getValue()
         );
         pedidoAtual.getBarris().forEach(b ->
                 pedidoFinal.adicionarBarril(
                         b.getCodigoBarril(),
                         b.getTipo(),
                         b.getCapacidade(),
-                        b.getPrecoVenda()   // preço já calculado — não recalcula
+                        b.getPrecoVenda(),   // preço já calculado — não recalcula
+                        b.isConsignado()
                 )
         );
         pedidoAtual = pedidoFinal;
         return true;
     }
 
-    /** Valida os campos do formulário de barril antes de adicionar. */
+    /**
+     * Valida os campos do formulário de barril antes de adicionar.
+     */
     private boolean validarCamposBarril() {
+        if (cmbTipoVenda.getValue() == null) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Modalidade não definida",
+                    "Selecione a modalidade do pedido antes de adicionar barris.",
+                    "PDV, Venda Direta ou Consignação.");
+            return false; // ← estava faltando aqui
+        }
+        // Sincroniza a modalidade no model imediatamente
+        pedidoAtual.setTipoVenda(cmbTipoVenda.getValue());
+
         if (txtCodigoBarril.getText().isBlank()) {
             mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
                     "Código do barril vazio", "Informe o código do barril.");
@@ -235,13 +292,9 @@ public class PedidoController implements Initializable {
                     "Capacidade não selecionada", "Selecione a capacidade do barril.");
             return false;
         }
-        if (cmbTipoVenda.getValue() == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Modalidade não selecionada", "Selecione PDV ou Venda Direta.");
-            return false;
-        }
-        return true;
+        return true; // ← estava "return false"
     }
+
 
     /** Fábrica centralizada para todos os Alerts do Controller. */
     private void mostrarAlerta(Alert.AlertType tipo, String titulo,

@@ -22,18 +22,18 @@ public class PedidoService {
         this.repository = repository;
     }
 
-    public void adicionarBarrilAoPedido(PedidoModel pedido, String codigo, TipoChopp tipo, CapacidadeBarril cap, TipoVenda modalidade) {
+    public void adicionarBarrilAoPedido(PedidoModel pedido, String codigo,
+                                        TipoChopp tipo, CapacidadeBarril cap,
+                                        boolean consignado) {
         try {
-
-
             // 1. O Service busca no banco o histórico de volume deste cliente
             double volumeMensal = repository.buscarVolumeMensalCliente(pedido.getNomeCliente()); // Ajustado parêntese
 
             // 2. O Service chama a calculadora (Método Static agora)
-            double precoCalculado = CalculadoraPreco.calcularVenda(tipo, modalidade, volumeMensal);
+            double precoCalculado = CalculadoraPreco.calcularVenda(tipo, pedido.getTipoVenda(), volumeMensal, consignado);
 
             // 3. O barril é criado com o preço que a regra de negócio definiu
-            pedido.adicionarBarril(codigo, tipo, cap, precoCalculado);
+            pedido.adicionarBarril(codigo, tipo, cap, precoCalculado, consignado);
         } catch (RuntimeException e) {
             // Decisão de negócio centralizada aqui:
             // opção A → abortar o pedido

@@ -2,6 +2,7 @@ package br.com.projetov.models.logistica.pedido;
 
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
+import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.BarrilPedido;
 
 import java.time.LocalDateTime;
@@ -11,24 +12,31 @@ import java.util.List;
 public class PedidoModel {
     private String nomeCliente;
     private String entregador;
+    private TipoVenda tipoVenda;
     private LocalDateTime dataHora;
     private List<BarrilPedido> barris;
 
-    public PedidoModel(String nomeCliente, String entregador) {
+    public PedidoModel(String nomeCliente, String entregador, TipoVenda tipoVenda) {
         this.nomeCliente = nomeCliente;
         this.entregador = entregador;
+        this.tipoVenda = tipoVenda;
         this.dataHora = LocalDateTime.now();
         this.barris = new ArrayList<>();
     }
+
+    public TipoVenda getTipoVenda() {return tipoVenda;}
+
+    public void setTipoVenda(TipoVenda tipoVenda) {this.tipoVenda = tipoVenda;}
 
     /**
      * Adiciona um barril dinamicamente.
      * Perfeito para o App Móvel onde o entregador adiciona vários itens.
      */
-    public void adicionarBarril(String codigo, TipoChopp tipo, CapacidadeBarril cap, double volumeHistoricoCliente) {
-        /* Futuramente criar um método que calcule quanto o cliente comprou no último mes e calcular um possível desconto */
-        this.barris.add(new BarrilPedido(codigo, tipo, cap, volumeHistoricoCliente));
+    public void adicionarBarril(String codigo, TipoChopp tipo, CapacidadeBarril cap, double precoCalculado,
+                                boolean consignado) {
+        this.barris.add(new BarrilPedido(codigo, tipo, cap, precoCalculado, consignado));
     }
+
 
     /**
      * Dica: Adicione este para o caso do entregador errar o código!

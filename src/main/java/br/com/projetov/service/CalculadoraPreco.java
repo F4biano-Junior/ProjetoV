@@ -5,7 +5,7 @@ import br.com.projetov.models.enums.TipoVenda;
 
 
 public class CalculadoraPreco {
-    public static double calcularVenda(TipoChopp chopp, TipoVenda tipoVenda, double volumeMensal) {
+    public static double calcularVenda(TipoChopp chopp, TipoVenda tipoVenda, double volumeMensal, boolean consignado) {
         double valor = chopp.getPrecoBase(); // Pega o valor definido no Enum
 
         if (tipoVenda == TipoVenda.PDV) {
@@ -21,6 +21,11 @@ public class CalculadoraPreco {
         } else if (tipoVenda == TipoVenda.VENDA_DIRETA) {
             // Aqui posso colocar regras específicas para venda direta no futuro
             // Por enquanto, retorna o preço base.
+        } if (consignado) {
+            // preço base, sem alteração
+            // mesma regra da venda direta — preço base, sem meta de volume
+            // separado intencionalmente para poder diferenciar no futuro
+            return chopp.getPrecoBase();
         }
 
         return valor;
