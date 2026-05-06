@@ -13,6 +13,7 @@ public class BarrilPedido {
         this.codigoBarril = codigoBarril;
         this.tipo = tipo;
         this.capacidade = capacidade;
+        this.precoVendido = getPrecoVenda();
     }
 
     // Getters

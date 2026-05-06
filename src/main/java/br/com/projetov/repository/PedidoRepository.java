@@ -66,24 +66,36 @@ public class PedidoRepository {
         }
     }
 public double buscarVolumeMensalCliente(String nomeCliente) {
+
+        // validação de entrada
+        if (nomeCliente == null || nomeCliente.isBlank()){
+            throw new IllegalArgumentException(
+                    "Nome do cliente não pode ser nulo ou vazio para buscar volume mensal"
+            );
+        }
+
     // SQL que soma os litros dos barris vendidos para o cliente nos últimos 30 dias
-    String sql = "SELECT SUM(b.capacidade) as total " +
+    String sql = "SELECT coalesce(SUM(b.capacidade), 0.0) as total " +
             "FROM barris_pedido b " +
             "JOIN pedido p ON b.pedido_id = p.id " +
             "WHERE p.cliente = ? " +
-            "AND p.data_hora >= date('now', '-30 days')";
+            "AND p.data_hora >= datetime('now', '-30 days')";
 
     try (Connection conn = SqliteConfig.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setString(1, nomeCliente);
-        ResultSet rs = pstmt.executeQuery();
-
-        if (rs.next()) {
-            return rs.getDouble("total");
+        try (ResultSet rs = pstmt.executeQuery();) {
+            if (rs.next()) {
+                return rs.getDouble("total");
+            }
         }
     } catch (SQLException e) {
-        System.err.println("Erro ao calcular volume mensal: " + e.getMessage());
+        // Lança exceção de runtime para não forçar tratamento onde não há contexto
+        // A Service captura e decide o comportamento de negócio
+        throw new RuntimeException(
+                "Erro ao calcular volume mensal do cliente '" + nomeCliente + "'" + e
+        );
     }
     return 0.0; // Se não encontrar nada, o volume é zero
 }

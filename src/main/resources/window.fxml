@@ -1,14 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="br.com.projetov.controller.PedidoController"
+            prefHeight="580.0" prefWidth="520.0"
+            style="-fx-background-color: #f4f4f4;">
 
+    <VBox spacing="16" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="24"
+          AnchorPane.rightAnchor="24" AnchorPane.bottomAnchor="20">
+
+        <!-- Título -->
+        <Label text="Novo Pedido de Chopp"
+               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+        <!-- Seção: Dados do Pedido -->
+        <TitledPane text="Dados do Pedido" collapsible="false"
+                    style="-fx-font-weight: bold;">
+            <GridPane hgap="12" vgap="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+                <Label text="Cliente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="txtCliente" promptText="Nome ou Razão Social"
+                           prefWidth="280"
+                           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Entregador:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="txtEntregador" promptText="Nome do entregador"
+                           GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- Seção: Adicionar Barril -->
+        <TitledPane text="Adicionar Barril" collapsible="false"
+                    style="-fx-font-weight: bold;">
+            <GridPane hgap="12" vgap="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+                <Label text="Código:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="txtCodigoBarril" promptText="Ex: B50-001"
+                           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Tipo:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <ComboBox fx:id="cmbTipoChopp"
+                          promptText="Selecione o tipo"
+                          prefWidth="200"
+                          GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Capacidade:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <ComboBox fx:id="cmbCapacidade"
+                          promptText="Selecione a capacidade"
+                          prefWidth="200"
+                          GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <Label text="Modalidade:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <ComboBox fx:id="cmbTipoVenda"
+                          promptText="PDV ou Venda Direta"
+                          prefWidth="200"
+                          GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <Button text="＋ Adicionar Barril"
+                        onAction="#handleAdicionarBarril"
+                        style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"
+                        GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- Lista de barris adicionados -->
+        <Label text="Barris no Pedido:" style="-fx-font-weight: bold;"/>
+        <ListView fx:id="listViewBarris" prefHeight="120"
+                  style="-fx-border-color: #bdc3c7; -fx-border-radius: 4;"/>
+
+        <!-- Total -->
+        <HBox alignment="CENTER_RIGHT">
+            <Label text="Total estimado: "
+                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Label fx:id="lblTotal" text="R$ 0,00"
+                   style="-fx-font-size: 14px; -fx-text-fill: #27ae60; -fx-font-weight: bold;"/>
+        </HBox>
+
+        <!-- Botões de ação -->
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Button text="Limpar"
+                    onAction="#handleLimpar"
+                    prefWidth="100"
+                    style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+            <Button text="✔ Finalizar Pedido"
+                    fx:id="btnFinalizar"
+                    onAction="#handleFinalizarPedido"
+                    prefWidth="160"
+                    style="-fx-background-color: #27ae60; -fx-text-fill: white;
+                           -fx-font-weight: bold; -fx-font-size: 14px;"/>
+        </HBox>
+
+    </VBox>
 </AnchorPane>

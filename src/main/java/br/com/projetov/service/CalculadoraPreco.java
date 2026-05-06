@@ -17,11 +17,12 @@ public class CalculadoraPreco {
             // No futuro, esse valor pode vir de uma tabela de metas
             if (volumeMensal >= 1000) {
                 valor -= 1.00;
-            } else if (tipoVenda == TipoVenda.VENDA_DIRETA){
-                // Aqui posso colocar regras específicas para venda direta no futuro
-                // Por enquanto, retorna o preço base.
             }
+        } else if (tipoVenda == TipoVenda.VENDA_DIRETA) {
+            // Aqui posso colocar regras específicas para venda direta no futuro
+            // Por enquanto, retorna o preço base.
         }
+
         return valor;
     }
 }

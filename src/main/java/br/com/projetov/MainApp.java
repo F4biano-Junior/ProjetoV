@@ -2,6 +2,7 @@ package br.com.projetov;
 
 import br.com.projetov.config.SqliteConfig;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -9,9 +10,12 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
     @Override
-    public void start(Stage stage) {
-        Label label = new Label("Sistema de Distribuição de Chopp ativo!");
-        Scene scene = new Scene(new StackPane(label), 400, 200);
+    public void start(Stage stage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/window.fxml")
+        );
+        Scene scene = new Scene(loader.load(), 520, 580);
+        stage.setTitle("Sistema de Vendas de Chopp");
         stage.setScene(scene);
         stage.show();
     }
