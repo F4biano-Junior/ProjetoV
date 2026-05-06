@@ -1,4 +1,4 @@
-package br.com.projetov.models;
+package br.com.projetov.models.pessoal;
 
 public class Cliente {
     private String nomeRazaoSocial;

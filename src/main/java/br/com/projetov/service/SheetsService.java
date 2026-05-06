@@ -1,16 +1,16 @@
 package br.com.projetov.service;
 
-import br.com.projetov.models.Produto;
+import br.com.projetov.models.logistica.Produto;
 import br.com.projetov.repository.SheetsRepository;
 
 
 import java.util.List;
 
-public class SheetsSerice {
+public class SheetsService {
     private final SheetsRepository repository;
 
 
-    public SheetsSerice() throws Exception {
+    public SheetsService() throws Exception {
         this.repository = new SheetsRepository();
     }
     public  void atualizarProduto(int linha, Produto produto) throws Exception{

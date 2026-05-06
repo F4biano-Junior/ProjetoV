@@ -1,5 +1,6 @@
 package br.com.projetov;
 
+import br.com.projetov.config.SqliteConfig;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -23,5 +24,6 @@ public class MainApp extends Application {
         // Garante que o processo Java encerre totalmente ao fechar a janela
         javafx.application.Platform.exit();
         System.exit(0);
+
     }
 }

@@ -1,13 +1,13 @@
 package br.com.projetov.controller;
 
 
-import br.com.projetov.service.SheetsSerice;
+import br.com.projetov.service.SheetsService;
 
 public class ProdutoController {
-    private final SheetsSerice serice;
+    private final SheetsService serice;
 
     public ProdutoController() throws Exception {
-        this.serice = new SheetsSerice();
+        this.serice = new SheetsService();
     }
 
     public void lancarVenda() throws Exception {

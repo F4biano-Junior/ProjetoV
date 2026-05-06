@@ -1,29 +1,29 @@
-package br.com.projetov.models;
+package br.com.projetov.models.logistica;
 
-public class ItemPedido {
+import br.com.projetov.models.enums.CapacidadeBarril;
+import br.com.projetov.models.enums.TipoChopp;
+
+public class BarrilPedido {
     private String codigoBarril;
     private TipoChopp tipo;
     private CapacidadeBarril capacidade;
     private double precoVendido; // O "Snapshot" do preço
 
-    public ItemPedido(String codigoBarril, TipoChopp tipo, CapacidadeBarril capacidade, double precoNoMomento) {
+    public BarrilPedido(String codigoBarril, TipoChopp tipo, CapacidadeBarril capacidade, double volumeHistoricoCliente) {
         this.codigoBarril = codigoBarril;
         this.tipo = tipo;
         this.capacidade = capacidade;
-        this.precoVendido = precoNoMomento;
     }
 
     // Getters
-
-
     public String getCodigoBarril() {return codigoBarril;}
 
     public TipoChopp getTipo() {return tipo;}
 
     public CapacidadeBarril getCapacidade() {return capacidade;}
 
-    public double getPrecoVendido() {return precoVendido;}
-
+    public double getPrecoVenda() {return precoVendido;}
+        //Valor total
     public double getSubtotal() {
         // Preço for por litro
         return capacidade.getLitros() * precoVendido;

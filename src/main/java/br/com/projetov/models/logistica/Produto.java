@@ -1,4 +1,6 @@
-package br.com.projetov.models;
+package br.com.projetov.models.logistica;
+
+import br.com.projetov.models.enums.TipoChopp;
 
 public class Produto {
     private  String nome;

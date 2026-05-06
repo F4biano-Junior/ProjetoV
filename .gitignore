@@ -41,5 +41,23 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+Thumbs.db
 
 src/main/resources/credentials.json
+
+# SQLite
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Gradle
+.gradle/
+build/
+
+# IntelliJ
+.idea/
+gen/
+
+# Logs
+*.log

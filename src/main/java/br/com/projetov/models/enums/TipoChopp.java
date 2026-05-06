@@ -1,4 +1,4 @@
-package br.com.projetov.models;
+package br.com.projetov.models.enums;
 
 public enum TipoChopp {
     Pilsen(10.00),
@@ -6,6 +6,6 @@ public enum TipoChopp {
     HopLager(12.00),
     Vienna(14.00);
     private final double precoPadrao;
-    TipoChopp(double p)  {this.precoPadrao = p; }
+    TipoChopp(double preco)  {this.precoPadrao = preco; }
     public double getPrecoBase() { return precoPadrao; }
 }
