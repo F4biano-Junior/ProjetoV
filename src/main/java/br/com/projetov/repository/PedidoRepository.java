@@ -18,7 +18,7 @@ public class PedidoRepository {
             conn.setAutoCommit(false); // Inicia a transação (tudo ou nada)
             // 1. Salva o Pedido e recupera o ID que o SQLite gerou automaticamente
             try {
-                long idPedido = insrirPedido(conn, sqlPedido, pedido);
+                long idPedido = inserirPedido(conn, sqlPedido, pedido);
                 inserirBarris(conn, sqlBarril, idPedido, pedido);
                 conn.commit();
             } catch (SQLException e) {
@@ -35,7 +35,7 @@ public class PedidoRepository {
         }
     }
 
-    private long insrirPedido(Connection conn, String sql, PedidoModel pedido) throws SQLException {
+    private long inserirPedido(Connection conn, String sql, PedidoModel pedido) throws SQLException {
         try (PreparedStatement pstmtPedido = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmtPedido.setString(1, pedido.getNomeCliente());
             pstmtPedido.setString(2, pedido.getEntregador());
