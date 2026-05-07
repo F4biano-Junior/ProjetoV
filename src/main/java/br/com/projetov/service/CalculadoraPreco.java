@@ -21,7 +21,7 @@ public class CalculadoraPreco {
         } else if (tipoVenda == TipoVenda.VENDA_DIRETA) {
             // Aqui posso colocar regras específicas para venda direta no futuro
             // Por enquanto, retorna o preço base.
-        } if (consignado) {
+        } else if (consignado) {
             // preço base, sem alteração
             // mesma regra da venda direta — preço base, sem meta de volume
             // separado intencionalmente para poder diferenciar no futuro

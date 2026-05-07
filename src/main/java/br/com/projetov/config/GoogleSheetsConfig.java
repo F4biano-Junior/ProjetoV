@@ -12,14 +12,19 @@ import com.google.auth.oauth2.GoogleCredentials;
 
 import java.io.FileInputStream;
 import java.util.List;
+import java.util.Optional;
 
 public class GoogleSheetsConfig {
     private static final String APPLICATION_NAME = "Projeto Vendas";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
     public static Sheets getSheetsService() throws Exception {
+
+        String credentialsPath = Optional.ofNullable(System.getenv("GOOGLE_SHEETS_CREDENTIALS"))
+                .orElse("src/main/resourses/credentials.json");
+
         GoogleCredentials credentials = GoogleCredentials
-                .fromStream(new FileInputStream("src/main/resources/credentials.json"))
+                .fromStream(new FileInputStream(credentialsPath))
                 .createScoped(List.of("https://www.googleapis.com/auth/spreadsheets"));
 
         HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
