@@ -3,7 +3,7 @@ package br.com.projetov.service;
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.repository.PedidoRepository;
+import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.service.calculadora.CalculadoraPreco;
 
 public class PedidoService {
@@ -16,10 +16,10 @@ public class PedidoService {
 //                500
 //        );
 //    }
-    private final PedidoRepository repository;
+    private final PedidoRepositorySQLite repository;
     CalculadoraPreco calcular = new CalculadoraPreco();
 
-    public PedidoService(PedidoRepository repository) {
+    public PedidoService(PedidoRepositorySQLite repository) {
         this.repository = repository;
     }
 

@@ -4,7 +4,7 @@ import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.repository.PedidoRepository;
+import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.service.PedidoService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,7 +49,7 @@ public class PedidoController implements Initializable {
     public PedidoController() {
         // PedidoService recebe o repositório via construtor — respeitando
         // a arquitetura que você já definiu no PedidoService.java
-        this.pedidoService = new PedidoService(new PedidoRepository());
+        this.pedidoService = new PedidoService(new PedidoRepositorySQLite());
     }
 
     // ── Inicialização do FXML ──────────────────────────────────────────────

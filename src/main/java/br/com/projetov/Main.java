@@ -1,5 +1,6 @@
 package br.com.projetov;
 
+import br.com.projetov.config.DatabaseInitializer;
 import br.com.projetov.config.SqliteConfig;
 
 
@@ -7,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
 
         try {
-            SqliteConfig.inicializarBanco();
+            DatabaseInitializer.inicializar();
             System.out.println("Banco de dados verificado com sucesso.");
         } catch (Exception e) {
             System.err.println("Erro fatal: Não foi possível preparar o banco de dados.");
