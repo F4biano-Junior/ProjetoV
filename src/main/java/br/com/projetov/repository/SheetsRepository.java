@@ -26,13 +26,14 @@ public class SheetsRepository {
         this.sheetsServices = GoogleSheetsConfig.getSheetsService();
     }
 
-    public void atualizarCelula(String range, List<List<Object>> valores) throws Exception {
+    public void adicionarLinha(String range, List<List<Object>> valores) throws Exception {
 
         ValueRange body = new ValueRange().setValues(valores);
 
         sheetsServices.spreadsheets().values()
                 .update(spreadsheetId, range, body)
-                .setValueInputOption("RAW")
+                .setValueInputOption("USER_ENTERED")
+
                 .execute();
     }
 

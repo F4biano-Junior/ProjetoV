@@ -54,4 +54,5 @@ public class PedidoModel {
     public void setNomeCliente(String nomeCliente) {
         this.nomeCliente = nomeCliente;
     }
+
 }

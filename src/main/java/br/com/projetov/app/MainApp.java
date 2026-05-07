@@ -1,4 +1,4 @@
-package br.com.projetov;
+package br.com.projetov.app;
 
 
 import javafx.application.Application;

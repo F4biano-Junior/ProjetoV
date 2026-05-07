@@ -1,5 +1,6 @@
 package br.com.projetov;
 
+import br.com.projetov.app.MainApp;
 import br.com.projetov.config.DatabaseInitializer;
 
 

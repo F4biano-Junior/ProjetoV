@@ -57,7 +57,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
 
 
     // 2. Salva todos os barris do pedido
-    private void inserirBarris(Connection conn, String sql, long idPedido, PedidoModel pedido) throws SQLException{
+    private void inserirBarris(Connection conn, String sql, long idPedido, PedidoModel pedido) throws SQLException {
         try (PreparedStatement pstmtBarril = conn.prepareStatement(sql)) {
             for (BarrilPedido barril : pedido.getBarris()) {
                 pstmtBarril.setLong(1, idPedido);
@@ -65,12 +65,13 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 pstmtBarril.setString(3, barril.getTipo().name());
                 pstmtBarril.setInt(4, barril.getCapacidade().getLitros());
                 pstmtBarril.setDouble(5, barril.getPrecoVenda());
-                pstmtBarril.setInt(6, barril.isConsignado() ? 1: 0);
+                pstmtBarril.setInt(6, barril.isConsignado() ? 1 : 0);
                 pstmtBarril.addBatch(); // Adiciona ao lote para salvar de uma vez
             }
             pstmtBarril.executeBatch(); // Executa o salvamento de todos os barris
         }
     }
+
     @Override
     public double buscarVolumeMensalCliente(String nomeCliente) {
         if (nomeCliente == null || nomeCliente.isBlank()) {
@@ -78,7 +79,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
         }
         String sql = "SELECT COALESCE(SUM(b.capacidade), 0.0) AS total " +
                 "FROM barris_pedido b " +
-                "JOIN pedido p ON b.pedido_id = p.id " +
+                "JOIN pedido_model p ON b.pedido_id = p.id " +
                 "WHERE p.cliente = ? " +
                 "AND p.data_hora >= datetime('now', '-30 days')";
 
@@ -94,9 +95,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
             }
         } catch (SQLException e) {
             System.err.println("Aviso: Histórico não localizado para '" + nomeCliente + "'. Assumindo como primeira compra. Erro: " + e.getMessage());
-            return 0.0;
         }
-     return 0;
+        return 0.0;
     }
-
 }

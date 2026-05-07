@@ -24,6 +24,6 @@ public class SheetsService {
 
                 )
         );
-        repository.atualizarCelula(range, valores);
+        repository.adicionarLinha(range, valores);
     }
 }

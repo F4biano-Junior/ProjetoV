@@ -4,8 +4,11 @@ import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
+import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.PedidoRepositorySQLite;
+import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.PedidoService;
+import br.com.projetov.service.calculadora.CalculadoraPreco;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -47,9 +50,23 @@ public class PedidoController implements Initializable {
     private final PedidoService pedidoService;
 
     public PedidoController() {
-        // PedidoService recebe o repositório via construtor — respeitando
-        // a arquitetura que você já definiu no PedidoService.java
-        this.pedidoService = new PedidoService(new PedidoRepositorySQLite());
+        try {
+            // 1. Instancia as implementações concretas
+            PedidoRepository repositoryLocal = new PedidoRepositorySQLite();
+            SheetsRepository repositoryNuvem = new SheetsRepository();
+
+            // 2. Configura a calculadora com as regras (Strategy Pattern)
+            // Certifique-se de que sua CalculadoraPreco receba as regras no construtor ou via método
+            CalculadoraPreco calculadora = new CalculadoraPreco();
+
+            // 3. Injeta todas as dependências no Service
+            this.pedidoService = new PedidoService(repositoryLocal, repositoryNuvem, calculadora);
+
+        } catch (Exception e) {
+            // Como o SheetsRepository e o SQLite podem lançar exceções na inicialização,
+            // precisamos tratar ou logar o erro aqui.
+            throw  new RuntimeException("Erro ao inicializar dependências do Controller: " + e.getMessage(), e);
+        }
     }
 
     // ── Inicialização do FXML ──────────────────────────────────────────────

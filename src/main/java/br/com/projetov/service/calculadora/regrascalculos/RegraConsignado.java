@@ -6,6 +6,6 @@ public class RegraConsignado implements RegraPreco{
 
     @Override
     public double aplicar(double precoBase, double volumeMensal, TipoVenda tipoVenda, boolean isConsignado) {
-        return 0;
+        return 0.0;
     }
 }
