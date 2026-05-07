@@ -31,7 +31,7 @@ public class SheetsRepository {
         ValueRange body = new ValueRange().setValues(valores);
 
         sheetsServices.spreadsheets().values()
-                .update(spreadsheetId, range, body)
+                .append(spreadsheetId, range, body)
                 .setValueInputOption("USER_ENTERED")
 
                 .execute();

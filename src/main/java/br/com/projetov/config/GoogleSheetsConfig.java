@@ -21,7 +21,7 @@ public class GoogleSheetsConfig {
     public static Sheets getSheetsService() throws Exception {
 
         String credentialsPath = Optional.ofNullable(System.getenv("GOOGLE_SHEETS_CREDENTIALS"))
-                .orElse("src/main/resourses/credentials.json");
+                .orElse("src/main/resources/credentials.json");
 
         GoogleCredentials credentials = GoogleCredentials
                 .fromStream(new FileInputStream(credentialsPath))

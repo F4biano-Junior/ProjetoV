@@ -39,7 +39,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'br.com.projetovendas.Main'
+    mainClass = 'br.com.projetov.Main'
 }
 
 tasks.test {
