@@ -76,7 +76,6 @@ public class PedidoRepositorySQLite implements PedidoRepository {
         if (nomeCliente == null || nomeCliente.isBlank()) {
             return 0.0;
         }
-
         String sql = "SELECT COALESCE(SUM(b.capacidade), 0.0) AS total " +
                 "FROM barris_pedido b " +
                 "JOIN pedido p ON b.pedido_id = p.id " +
@@ -94,11 +93,10 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Erro ao calcular volume mensal do cliente '" + nomeCliente + "'", e // ← vírgula
-            );
+            System.err.println("Aviso: Histórico não localizado para '" + nomeCliente + "'. Assumindo como primeira compra. Erro: " + e.getMessage());
+            return 0.0;
         }
-        return 0.0;
+     return 0;
     }
 
 }

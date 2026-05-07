@@ -15,6 +15,7 @@ public class DatabaseInitializer {
             }
 
             String sql = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            String[] comandos = sql.split(";");
 
             // Executa o script no banco
             try (Connection conn = ConnectionFactory.getConnection();
