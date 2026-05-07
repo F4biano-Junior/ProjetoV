@@ -46,7 +46,14 @@ public class BarrilPedido {
     @Override
     public String toString() {
         String tag = consignado ? " [CONSIGNADO]" : "";
-        return String.format("%s | %s | %dL | R$ %.2f%s",
-                codigoBarril, tipo.name(), capacidade.getLitros(), precoVendido, tag);
+
+        return String.format("%s | %s | %d/L | R$ %.2f/L | R$ %.2f/Barril%s",
+                codigoBarril,
+                tipo.name(),
+                capacidade.getLitros(),
+                precoVendido,
+                getSubtotal(),
+                tag
+        );
     }
 }
