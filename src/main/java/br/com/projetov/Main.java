@@ -1,7 +1,6 @@
 package br.com.projetov;
 
 import br.com.projetov.config.DatabaseInitializer;
-import br.com.projetov.config.SqliteConfig;
 
 
 public class Main {

@@ -1,6 +1,6 @@
 package br.com.projetov.repository;
 
-import br.com.projetov.config.SqliteConfig;
+import br.com.projetov.config.ConnectionFactory;
 import br.com.projetov.models.logistica.BarrilPedido;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
 
@@ -12,13 +12,13 @@ public class PedidoRepositorySQLite implements PedidoRepository {
     @Override
     public void salvar(PedidoModel pedido) throws SQLException {
         // SQL para cabeçalho do pedido
-        String sqlPedido = "INSERT INTO pedido (cliente, entregador, data_hora) VALUES (?, ?, ?)";
+        String sqlPedido = "INSERT INTO pedido_model (cliente, entregador, data_hora) VALUES (?, ?, ?)";
         // SQL para os barris (vinculados peço 'ID' do pedido)
         String sqlBarril = "INSERT INTO barris_pedido " +
                 "(pedido_id, codigo_barril, tipo_chopp, capacidade, preco_venda, consignado) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = SqliteConfig.getConnection()) {
+        try (Connection conn = ConnectionFactory.getConnection()) {
             conn.setAutoCommit(false); // Inicia a transação (tudo ou nada)
             // 1. Salva o Pedido e recupera o ID que o SQLite gerou automaticamente
             try {
@@ -82,7 +82,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 "WHERE p.cliente = ? " +
                 "AND p.data_hora >= datetime('now', '-30 days')";
 
-        try (Connection conn = SqliteConfig.getConnection();
+        try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, nomeCliente);

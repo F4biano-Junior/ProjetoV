@@ -17,10 +17,15 @@ public class DatabaseInitializer {
             String sql = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             String[] comandos = sql.split(";");
 
-            // Executa o script no banco
             try (Connection conn = ConnectionFactory.getConnection();
                  Statement stmt = conn.createStatement()) {
-                stmt.execute(sql);
+
+                // Passa por cada pedaço do script e executa um de cada vez
+                for (String comando : comandos) {
+                    if (!comando.trim().isEmpty()) { // Ignora espaços em branco no final do arquivo
+                        stmt.execute(comando);
+                    }
+                }
                 System.out.println("Banco de dados verificado/atualizado com sucesso.");
             }
 

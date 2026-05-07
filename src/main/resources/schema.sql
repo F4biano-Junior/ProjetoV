@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS barris_pedido (
                                              consignado INTEGER DEFAULT 0, -- 0 = Não, 1 = Sim
 
     -- Chave estrangeira ligando o barril ao pedido correspondente
-                                             FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE
+                                             FOREIGN KEY (pedido_id) REFERENCES pedido_model(id) ON DELETE CASCADE
 );
