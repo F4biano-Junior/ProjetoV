@@ -2,9 +2,9 @@ package br.com.projetov.service;
 
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
-import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
 import br.com.projetov.repository.PedidoRepository;
+import br.com.projetov.service.calculadora.CalculadoraPreco;
 
 public class PedidoService {
 //    public static void main(String[] args) {
@@ -17,6 +17,7 @@ public class PedidoService {
 //        );
 //    }
     private final PedidoRepository repository;
+    CalculadoraPreco calcular = new CalculadoraPreco();
 
     public PedidoService(PedidoRepository repository) {
         this.repository = repository;
@@ -30,7 +31,7 @@ public class PedidoService {
             double volumeMensal = repository.buscarVolumeMensalCliente(pedido.getNomeCliente()); // Ajustado parêntese
 
             // 2. O Service chama a calculadora (Método Static agora)
-            double precoCalculado = CalculadoraPreco.calcularVenda(tipo, pedido.getTipoVenda(), volumeMensal, consignado);
+            double precoCalculado = calcular.calcularVenda(tipo, pedido.getTipoVenda(), volumeMensal, consignado);
 
             // 3. O barril é criado com o preço que a regra de negócio definiu
             pedido.adicionarBarril(codigo, tipo, cap, precoCalculado, consignado);

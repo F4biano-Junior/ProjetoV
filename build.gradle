@@ -4,7 +4,7 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
-group = 'br.com.projetovendas'
+group = 'br.com.projetov'
 version = '1.0-SNAPSHOT'
 
 repositories {

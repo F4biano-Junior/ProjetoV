@@ -1,5 +1,6 @@
 package br.com.projetov.models.pessoal;
 
-public class Entregador{
-
+public record Entregador(
+        String nome,
+         String Veiculo) {
 }

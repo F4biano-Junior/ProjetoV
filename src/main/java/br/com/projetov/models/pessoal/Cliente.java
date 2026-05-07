@@ -1,10 +1,9 @@
 package br.com.projetov.models.pessoal;
 
-public class Cliente {
-    private String nomeRazaoSocial;
-    private String CpfCnpj;
-    private String telefone;
-    private String endereco;
-
-
+public record Cliente(String nomeRazaoSocial, String CpfCnpj, String telefone, String endereco) {
+    public Cliente {
+        if (nomeRazaoSocial == null || nomeRazaoSocial.isBlank()){
+            throw  new IllegalArgumentException("Nome do cliente é obrigatório");
+        }
+    }
 }

@@ -43,8 +43,6 @@ bin/
 .DS_Store
 Thumbs.db
 
-src/main/resources/credentials.json
-
 # SQLite
 *.db
 *.db-journal
@@ -61,3 +59,7 @@ gen/
 
 # Logs
 *.log
+
+# Configurações sensíveis e credenciais
+src/main/resources/application.properties
+src/main/resources/credentials.json
