@@ -1,6 +1,7 @@
 package br.com.projetov.app;
 
 
+import br.com.projetov.config.GlobalExceptionHandler;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,6 +18,8 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        GlobalExceptionHandler.initialize();
+
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/window.fxml")
         );
