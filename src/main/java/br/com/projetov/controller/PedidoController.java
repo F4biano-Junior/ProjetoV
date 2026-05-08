@@ -69,7 +69,7 @@ public class PedidoController implements Initializable {
 
     private PedidoModel pedidoAtual;
     private final ObservableList<BarrilPedido> itensPedido = FXCollections.observableArrayList();
-    private final NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+    private final NumberFormat moeda = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private final PedidoService pedidoService;
 
     public PedidoController() {
@@ -117,7 +117,7 @@ public class PedidoController implements Initializable {
             pedidoService.adicionarBarrilAoPedido(pedidoAtual, codigo, tipo, cap, consignado);
 
             BarrilPedido barrilAdicionado = pedidoAtual.getBarris()
-                    .get(pedidoAtual.getBarris().size() - 1);
+                    .getLast();
             itensPedido.add(barrilAdicionado);
 
             atualizarResumoPedido();
@@ -158,7 +158,6 @@ public class PedidoController implements Initializable {
         }
 
         boolean confirmado = mostrarConfirmacao(
-                "Finalizar Pedido",
                 "Confirmar gravacao do pedido para " + pedidoAtual.getNomeCliente() + "?",
                 "Serao salvos " + pedidoAtual.getBarris().size() + " barril(is) no banco de dados."
         );
@@ -323,9 +322,9 @@ public class PedidoController implements Initializable {
         alert.showAndWait();
     }
 
-    private boolean mostrarConfirmacao(String titulo, String cabecalho, String conteudo) {
+    private boolean mostrarConfirmacao(String cabecalho, String conteudo) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle(titulo);
+        alert.setTitle("Finalizar Pedido");
         alert.setHeaderText(cabecalho);
         alert.setContentText(conteudo);
         return alert.showAndWait()
