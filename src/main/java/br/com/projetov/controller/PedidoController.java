@@ -3,24 +3,35 @@ package br.com.projetov.controller;
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
+import br.com.projetov.models.logistica.BarrilPedido;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
 import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.PedidoService;
 import br.com.projetov.service.calculadora.CalculadoraPreco;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 
 import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class PedidoController implements Initializable {
 
-    // ── Campos do formulário ───────────────────────────────────────────────
     @FXML
     private TextField txtCliente;
     @FXML
@@ -34,7 +45,21 @@ public class PedidoController implements Initializable {
     @FXML
     private ComboBox<TipoVenda> cmbTipoVenda;
     @FXML
-    private ListView<String> listViewBarris;
+    private TableView<BarrilPedido> tableBarris;
+    @FXML
+    private TableColumn<BarrilPedido, String> colCodigo;
+    @FXML
+    private TableColumn<BarrilPedido, String> colTipo;
+    @FXML
+    private TableColumn<BarrilPedido, String> colLitros;
+    @FXML
+    private TableColumn<BarrilPedido, String> colPrecoLitro;
+    @FXML
+    private TableColumn<BarrilPedido, String> colValorBarril;
+    @FXML
+    private TableColumn<BarrilPedido, String> colStatus;
+    @FXML
+    private Label lblResumoPedido;
     @FXML
     private Label lblTotal;
     @FXML
@@ -42,129 +67,106 @@ public class PedidoController implements Initializable {
     @FXML
     private CheckBox chkConsignado;
 
-    // ── Estado interno ─────────────────────────────────────────────────────
     private PedidoModel pedidoAtual;
-    private final ObservableList<String> itensListView = FXCollections.observableArrayList();
-
-    // ── Camada de serviço (injeção via construtor, como o Service espera) ─
+    private final ObservableList<BarrilPedido> itensPedido = FXCollections.observableArrayList();
+    private final NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     private final PedidoService pedidoService;
 
     public PedidoController() {
         try {
-            // 1. Instancia as implementações concretas
             PedidoRepository repositoryLocal = new PedidoRepositorySQLite();
             SheetsRepository repositoryNuvem = new SheetsRepository();
-
-            // 2. Configura a calculadora com as regras (Strategy Pattern)
             CalculadoraPreco calculadora = new CalculadoraPreco();
 
-            // 3. Injeta todas as dependências no Service
             this.pedidoService = new PedidoService(repositoryLocal, repositoryNuvem, calculadora);
-
         } catch (Exception e) {
-            // Como o SheetsRepository e o SQLite podem lançar exceções na inicialização,
-            // precisamos tratar ou logar o erro aqui.
-            throw  new RuntimeException("Erro ao inicializar dependências do Controller: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao inicializar dependencias do Controller: " + e.getMessage(), e);
         }
     }
 
-    // ── Inicialização do FXML ──────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Popula os ComboBoxes com os valores dos Enums
         cmbTipoChopp.setItems(FXCollections.observableArrayList(TipoChopp.values()));
         cmbCapacidade.setItems(FXCollections.observableArrayList(CapacidadeBarril.values()));
         cmbTipoVenda.setItems(FXCollections.observableArrayList(TipoVenda.values()));
 
-        // Conecta a lista observável ao ListView — atualizações automáticas na UI
-        listViewBarris.setItems(itensListView);
+        configurarTabelaBarris();
+        tableBarris.setItems(itensPedido);
 
-        btnFinalizar.setDisable(true);// ← pedido vazio, não pode finalizar
-
-        // Prepara o primeiro pedido em branco
+        btnFinalizar.setDisable(true);
         iniciarNovoPedido();
     }
 
-    // ── Handler: Adicionar Barril ──────────────────────────────────────────
     @FXML
     private void handleAdicionarBarril() {
-        // 1. Valida os campos do barril antes de qualquer operação
-        if (!validarCamposBarril()) return;
-        // ← ADICIONAR ESTE BLOCO: sincroniza o nome do cliente no model
-        //    antes de qualquer consulta ao banco
+        if (!validarCamposBarril()) {
+            return;
+        }
+
         String nomeCliente = txtCliente.getText().trim();
         if (!nomeCliente.isBlank()) {
-            pedidoAtual.setNomeCliente(nomeCliente); // ← precisa do setter (ver abaixo)
+            pedidoAtual.setNomeCliente(nomeCliente);
         }
+
         String codigo = txtCodigoBarril.getText().trim();
         TipoChopp tipo = cmbTipoChopp.getValue();
         CapacidadeBarril cap = cmbCapacidade.getValue();
-//        TipoVenda modalidade    = cmbTipoVenda.getValue();
-        boolean consignado   = chkConsignado.isSelected();
+        boolean consignado = chkConsignado.isSelected();
 
         try {
-            // 2. Delega ao Service — ele busca o volume mensal e calcula o preço
             pedidoService.adicionarBarrilAoPedido(pedidoAtual, codigo, tipo, cap, consignado);
 
-            // 3. Atualiza a ListView com o toString() do barril recém-adicionado
-            //    Pega o último item inserido na lista do model
-            String descricaoBarril = pedidoAtual.getBarris()
-                    .get(pedidoAtual.getBarris().size() - 1)
-                    .toString();
-            itensListView.add(descricaoBarril);
+            BarrilPedido barrilAdicionado = pedidoAtual.getBarris()
+                    .get(pedidoAtual.getBarris().size() - 1);
+            itensPedido.add(barrilAdicionado);
 
-            // 4. Recalcula e exibe o total
-            atualizarTotal();
+            atualizarResumoPedido();
+            btnFinalizar.setDisable(false);
 
-            btnFinalizar.setDisable(false); // 5. há pelo menos 1 barril, pode finalizar
-
-            // 6. Limpa apenas o campo de código para agilizar o próximo lançamento
             txtCodigoBarril.clear();
             chkConsignado.setSelected(false);
-
+            txtCodigoBarril.requestFocus();
         } catch (RuntimeException e) {
             mostrarAlerta(
                     Alert.AlertType.ERROR,
                     "Erro ao Adicionar Barril",
-                    "Não foi possível calcular o preço do barril.",
-                    "Verifique a conexão com o banco de dados.\n\nDetalhe técnico: " + e.getMessage()
+                    "Nao foi possivel calcular o preco do barril.",
+                    "Verifique a conexao com o banco de dados.\n\nDetalhe tecnico: " + e.getMessage()
             );
         }
     }
 
-    // Remove barril selecionado na ListView
     @FXML
     private void handleRemoverBarril() {
-        int index = listViewBarris.getSelectionModel().getSelectedIndex();
-        if (index < 0) {
+        BarrilPedido barrilSelecionado = tableBarris.getSelectionModel().getSelectedItem();
+        if (barrilSelecionado == null) {
             mostrarAlerta(Alert.AlertType.WARNING, "Nenhum item selecionado",
-                    "Selecione um barril na lista para remover.", "");
+                    "Selecione um barril na tabela para remover.", "");
             return;
         }
-        // Remove do model e da ListView pelo mesmo Índice
-        String codigoBarril = pedidoAtual.getBarris().get(index).getCodigoBarril();
-        pedidoAtual.removerBarril(codigoBarril);
-        itensListView.remove(index);
-        atualizarTotal();
-        btnFinalizar.setDisable(itensListView.isEmpty()); // ← desabilita se voltou a zero
+
+        pedidoAtual.removerBarril(barrilSelecionado.getCodigoBarril());
+        itensPedido.remove(barrilSelecionado);
+        atualizarResumoPedido();
+        btnFinalizar.setDisable(itensPedido.isEmpty());
     }
 
-    // ── Handler: Finalizar Pedido ──────────────────────────────────────────
     @FXML
     private void handleFinalizarPedido() {
-        // 1. Valida os dados obrigatórios do cabeçalho do pedido
-        if (!validarCamposPedido()) return;
+        if (!validarCamposPedido()) {
+            return;
+        }
 
-        // 2. Confirmação antes de gravar — evita finalizações acidentais
         boolean confirmado = mostrarConfirmacao(
                 "Finalizar Pedido",
-                "Confirmar gravação do pedido para " + pedidoAtual.getNomeCliente() + "?",
-                "Serão salvos " + pedidoAtual.getBarris().size() + " barril(is) no banco de dados."
+                "Confirmar gravacao do pedido para " + pedidoAtual.getNomeCliente() + "?",
+                "Serao salvos " + pedidoAtual.getBarris().size() + " barril(is) no banco de dados."
         );
-        if (!confirmado) return;
+        if (!confirmado) {
+            return;
+        }
 
         try {
-            // 3. PedidoService valida se há barris e persiste via repositório
             pedidoService.finalizarPedido(pedidoAtual);
 
             mostrarAlerta(
@@ -172,25 +174,21 @@ public class PedidoController implements Initializable {
                     "Pedido Finalizado",
                     "Pedido salvo com sucesso!",
                     "Cliente: " + pedidoAtual.getNomeCliente() +
-                            "\nBarris: " + pedidoAtual.getBarris().size()
+                            "\nBarris: " + pedidoAtual.getBarris().size() +
+                            "\nTotal: " + formatarMoeda(calcularTotalPedido())
             );
 
-            // 4. Reseta a tela para um novo pedido
             handleLimpar();
-
         } catch (Exception e) {
-            // Captura tanto IllegalArgumentException (pedido sem barris)
-            // quanto RuntimeException (falha de banco vinda do Repository)
             mostrarAlerta(
                     Alert.AlertType.ERROR,
                     "Erro ao Finalizar Pedido",
-                    "Não foi possível salvar o pedido.",
+                    "Nao foi possivel salvar o pedido.",
                     e.getMessage()
             );
         }
     }
 
-    // ── Handler: Limpar tela ───────────────────────────────────────────────
     @FXML
     private void handleLimpar() {
         txtCliente.clear();
@@ -199,57 +197,64 @@ public class PedidoController implements Initializable {
         cmbTipoChopp.setValue(null);
         cmbCapacidade.setValue(null);
         cmbTipoVenda.setValue(null);
-        itensListView.clear();
-        lblTotal.setText("R$ 0,00");
+        itensPedido.clear();
         chkConsignado.setSelected(false);
         iniciarNovoPedido();
     }
 
-    // ── Helpers privados ───────────────────────────────────────────────────
+    private void configurarTabelaBarris() {
+        colCodigo.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getCodigoBarril()));
+        colTipo.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getTipo().name()));
+        colLitros.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getCapacidade().getLitros() + " L"));
+        colPrecoLitro.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(formatarMoeda(cell.getValue().getPrecoVenda())));
+        colValorBarril.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(formatarMoeda(cell.getValue().getSubtotal())));
+        colStatus.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().isConsignado() ? "Consignado" : "Venda"));
+    }
 
-    /**
-     * Cria um PedidoModel novo. Chamado no initialize() e após cada finalização.
-     * O nomeCliente e entregador são atualizados dinamicamente no momento
-     * da finalização — o PedidoModel é apenas o container dos barris por enquanto.
-     */
     private void iniciarNovoPedido() {
-        // Pedido começa com strings vazias; os campos reais são capturados
-        // no momento de finalizar, garantindo que o usuário preencha antes de salvar
         pedidoAtual = new PedidoModel("", "", null);
-        btnFinalizar.setDisable(true); // ← reseta junto com o pedido
+        btnFinalizar.setDisable(true);
+        atualizarResumoPedido();
     }
 
-    /**
-     * Recalcula e atualiza o Label de total com base nos barris do model.
-     */
-    private void atualizarTotal() {
-        double total = pedidoAtual.getBarris().stream()
-                .mapToDouble(b -> b.getSubtotal())
+    private void atualizarResumoPedido() {
+        int quantidadeBarris = pedidoAtual.getBarris().size();
+        int litrosPedido = pedidoAtual.getBarris().stream()
+                .mapToInt(b -> b.getCapacidade().getLitros())
                 .sum();
-        lblTotal.setText(String.format("R$ %.2f", total));
+
+        lblResumoPedido.setText(String.format("%d barril(is) | %d L", quantidadeBarris, litrosPedido));
+        lblTotal.setText(formatarMoeda(calcularTotalPedido()));
     }
 
-    /**
-     * Valida campos do cabeçalho do pedido.
-     * Também sincroniza o PedidoModel com os campos de texto neste momento,
-     * pois o model é o único lugar que o Service lê.
-     */
+    private double calcularTotalPedido() {
+        return pedidoAtual.getBarris().stream()
+                .mapToDouble(BarrilPedido::getSubtotal)
+                .sum();
+    }
+
     private boolean validarCamposPedido() {
         if (txtCliente.getText().isBlank()) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Nome do cliente não preenchido", "Informe o cliente antes de finalizar.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Nome do cliente nao preenchido", "Informe o cliente antes de finalizar.");
             txtCliente.requestFocus();
             return false;
         }
         if (txtEntregador.getText().isBlank()) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Nome do entregador não preenchido", "Informe o entregador antes de finalizar.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Nome do entregador nao preenchido", "Informe o entregador antes de finalizar.");
             txtEntregador.requestFocus();
             return false;
         }
         if (cmbTipoVenda.getValue() == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Modalidade não selecionada", "Selecione PDV, Venda Direta ou consignação");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Modalidade nao selecionada", "Selecione PDV ou Venda Direta.");
             return false;
         }
 
@@ -259,8 +264,6 @@ public class PedidoController implements Initializable {
             return false;
         }
 
-        // Recria o PedidoModel com os dados corretos do formulário,
-        // preservando os barris já adicionados
         PedidoModel pedidoFinal = new PedidoModel(
                 txtCliente.getText().trim(),
                 txtEntregador.getText().trim(),
@@ -271,7 +274,7 @@ public class PedidoController implements Initializable {
                         b.getCodigoBarril(),
                         b.getTipo(),
                         b.getCapacidade(),
-                        b.getPrecoVenda(),   // preço já calculado — não recalcula
+                        b.getPrecoVenda(),
                         b.isConsignado()
                 )
         );
@@ -279,40 +282,38 @@ public class PedidoController implements Initializable {
         return true;
     }
 
-    /**
-     * Valida os campos do formulário de barril antes de adicionar.
-     */
     private boolean validarCamposBarril() {
         if (cmbTipoVenda.getValue() == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Modalidade não definida",
+            mostrarAlerta(Alert.AlertType.WARNING, "Modalidade nao definida",
                     "Selecione a modalidade do pedido antes de adicionar barris.",
-                    "PDV, Venda Direta ou Consignação.");
-            return false; // ← estava faltando aqui
+                    "PDV ou Venda Direta.");
+            return false;
         }
-        // Sincroniza a modalidade no model imediatamente
         pedidoAtual.setTipoVenda(cmbTipoVenda.getValue());
 
         if (txtCodigoBarril.getText().isBlank()) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Código do barril vazio", "Informe o código do barril.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Codigo do barril vazio", "Informe o codigo do barril.");
             txtCodigoBarril.requestFocus();
             return false;
         }
         if (cmbTipoChopp.getValue() == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Tipo de chopp não selecionado", "Selecione o tipo do chopp.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Tipo de chopp nao selecionado", "Selecione o tipo do chopp.");
             return false;
         }
         if (cmbCapacidade.getValue() == null) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatório",
-                    "Capacidade não selecionada", "Selecione a capacidade do barril.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo obrigatorio",
+                    "Capacidade nao selecionada", "Selecione a capacidade do barril.");
             return false;
         }
-        return true; // ← estava "return false"
+        return true;
     }
 
+    private String formatarMoeda(double valor) {
+        return moeda.format(valor);
+    }
 
-    /** Fábrica centralizada para todos os Alerts do Controller. */
     private void mostrarAlerta(Alert.AlertType tipo, String titulo,
                                String cabecalho, String conteudo) {
         Alert alert = new Alert(tipo);
@@ -322,7 +323,6 @@ public class PedidoController implements Initializable {
         alert.showAndWait();
     }
 
-    /** Diálogo de confirmação — retorna true se o usuário clicou em OK. */
     private boolean mostrarConfirmacao(String titulo, String cabecalho, String conteudo) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(titulo);

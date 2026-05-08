@@ -8,42 +8,58 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 
-
 public class SheetsRepository {
-    private String spreadsheetId;
+    private final String spreadsheetId;
     private final Sheets sheetsServices;
 
+    public SheetsRepository() {
+        String configuredSpreadsheetId = null;
+        Sheets configuredSheetsService = null;
 
-    public SheetsRepository() throws Exception {
-        Properties prop = new Properties();
-        try(InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")){
-            if (input == null) {
-                throw new RuntimeException("Desculpe, não consegui encontrar o application.properties");
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")) {
+            if (input != null) {
+                Properties prop = new Properties();
+                prop.load(input);
+                configuredSpreadsheetId = prop.getProperty("google.spreadsheet.id");
             }
-            prop.load(input);
-            this.spreadsheetId = prop.getProperty("google.spreadsheet.id");
+
+            if (configuredSpreadsheetId != null && !configuredSpreadsheetId.isBlank()) {
+                configuredSheetsService = GoogleSheetsConfig.getSheetsService();
+            }
+        } catch (Exception e) {
+            System.err.println("Sincronizacao Google Sheets indisponivel. Modo offline ativo: " + e.getMessage());
         }
-        this.sheetsServices = GoogleSheetsConfig.getSheetsService();
+
+        this.spreadsheetId = configuredSpreadsheetId;
+        this.sheetsServices = configuredSheetsService;
     }
 
     public void adicionarLinha(String range, List<List<Object>> valores) throws Exception {
+        if (!isSyncDisponivel()) {
+            return;
+        }
 
         ValueRange body = new ValueRange().setValues(valores);
 
         sheetsServices.spreadsheets().values()
                 .append(spreadsheetId, range, body)
                 .setValueInputOption("USER_ENTERED")
-
                 .execute();
     }
 
     public List<List<Object>> lerDados(String range) throws Exception {
+        if (!isSyncDisponivel()) {
+            return List.of();
+        }
 
         ValueRange response = sheetsServices.spreadsheets().values()
                 .get(spreadsheetId, range)
                 .execute();
 
         return response.getValues();
+    }
 
+    private boolean isSyncDisponivel() {
+        return spreadsheetId != null && !spreadsheetId.isBlank() && sheetsServices != null;
     }
 }

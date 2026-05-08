@@ -20,9 +20,11 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/window.fxml")
         );
-        Scene scene = new Scene(loader.load(), 520, 580);
+        Scene scene = new Scene(loader.load(), 760, 680);
         stage.setTitle("Sistema de Vendas de Chopp");
         stage.setScene(scene);
+        stage.setMinWidth(720);
+        stage.setMinHeight(620);
         stage.show();
     }
 
