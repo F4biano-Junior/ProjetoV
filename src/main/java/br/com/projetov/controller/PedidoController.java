@@ -46,7 +46,7 @@ public class PedidoController implements Initializable {
     private PedidoModel pedidoAtual;
     private final ObservableList<String> itensListView = FXCollections.observableArrayList();
 
-    // ── Camada de serviço (injeção via construtor, como seu Service espera) ─
+    // ── Camada de serviço (injeção via construtor, como o Service espera) ─
     private final PedidoService pedidoService;
 
     public PedidoController() {
@@ -56,7 +56,6 @@ public class PedidoController implements Initializable {
             SheetsRepository repositoryNuvem = new SheetsRepository();
 
             // 2. Configura a calculadora com as regras (Strategy Pattern)
-            // Certifique-se de que sua CalculadoraPreco receba as regras no construtor ou via método
             CalculadoraPreco calculadora = new CalculadoraPreco();
 
             // 3. Injeta todas as dependências no Service
