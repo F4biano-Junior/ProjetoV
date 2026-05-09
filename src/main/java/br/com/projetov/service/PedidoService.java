@@ -3,7 +3,9 @@ package br.com.projetov.service;
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.logistica.BarrilPedido;
+import br.com.projetov.models.logistica.pedido.PedidoHistorico;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
+import br.com.projetov.models.logistica.pedido.ResumoHoje;
 import br.com.projetov.repository.PedidoRepository;
 
 import br.com.projetov.repository.SheetsRepository;
@@ -92,5 +94,13 @@ public class PedidoService {
         throw new Exception("Não é possível salvar um pedido sem barris");
         }
         localRepository.salvar(pedido);
+    }
+
+    public List<PedidoHistorico> listarHistoricoPedidos() {
+        return localRepository.buscarHistoricoPedidos();
+    }
+
+    public ResumoHoje buscarResumoHoje() {
+        return localRepository.buscarResumoHoje();
     }
 }

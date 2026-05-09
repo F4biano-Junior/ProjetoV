@@ -4,7 +4,9 @@ import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.BarrilPedido;
+import br.com.projetov.models.logistica.pedido.PedidoHistorico;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
+import br.com.projetov.models.logistica.pedido.ResumoHoje;
 import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
@@ -21,15 +23,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 
 import java.net.URL;
 import java.text.NumberFormat;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -73,10 +79,30 @@ public class PedidoController implements Initializable {
     private Circle statusSyncIndicator;
     @FXML
     private Label lblSyncStatus;
+    @FXML
+    private Label lblLitrosHoje;
+    @FXML
+    private Label lblVendasHoje;
+    @FXML
+    private TableView<PedidoHistorico> tableHistorico;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistData;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistCliente;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistTipoVenda;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistBarris;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistTotal;
+    @FXML
+    private TableColumn<PedidoHistorico, String> colHistSync;
 
     private PedidoModel pedidoAtual;
     private final ObservableList<BarrilPedido> itensPedido = FXCollections.observableArrayList();
+    private final ObservableList<PedidoHistorico> pedidosHistorico = FXCollections.observableArrayList();
     private final NumberFormat moeda = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private final DateTimeFormatter dataHoraFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private final PedidoService pedidoService;
 
     public PedidoController() {
@@ -99,10 +125,14 @@ public class PedidoController implements Initializable {
         cmbTipoVenda.setItems(FXCollections.observableArrayList(TipoVenda.values()));
 
         configurarTabelaBarris();
+        configurarTabelaHistorico();
         tableBarris.setItems(itensPedido);
+        tableHistorico.setItems(pedidosHistorico);
         btnFinalizar.disableProperty().bind(Bindings.isEmpty(itensPedido));
 
         iniciarNovoPedido();
+        carregarResumoHoje();
+        carregarHistoricoPedidos();
     }
 
     @FXML
@@ -180,6 +210,8 @@ public class PedidoController implements Initializable {
                             "\nTotal: " + formatarMoeda(calcularTotalPedido())
             );
 
+            carregarResumoHoje();
+            carregarHistoricoPedidos();
             handleLimpar();
         } catch (Exception e) {
             mostrarAlerta(
@@ -204,6 +236,12 @@ public class PedidoController implements Initializable {
         iniciarNovoPedido();
     }
 
+    @FXML
+    private void handleAtualizarHistorico() {
+        carregarResumoHoje();
+        carregarHistoricoPedidos();
+    }
+
     private void configurarTabelaBarris() {
         colCodigo.setCellValueFactory(cell ->
                 new ReadOnlyStringWrapper(cell.getValue().getCodigoBarril()));
@@ -217,6 +255,32 @@ public class PedidoController implements Initializable {
                 new ReadOnlyStringWrapper(formatarMoeda(cell.getValue().getSubtotal())));
         colStatus.setCellValueFactory(cell ->
                 new ReadOnlyStringWrapper(cell.getValue().isConsignado() ? "Consignado" : "Venda"));
+    }
+
+    private void configurarTabelaHistorico() {
+        colHistData.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().dataHora().format(dataHoraFormatter)));
+        colHistCliente.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().nomeCliente()));
+        colHistTipoVenda.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(formatarEnum(cell.getValue().tipoVenda().name())));
+        colHistBarris.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(String.format(
+                        "%d | %d L",
+                        cell.getValue().quantidadeBarris(),
+                        cell.getValue().litrosTotal()
+                )));
+        colHistTotal.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(formatarMoeda(cell.getValue().totalPedido())));
+        colHistSync.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().sincronizado() ? "Sincronizado" : "Pendente"));
+
+        tableHistorico.getSelectionModel().selectedItemProperty().addListener((obs, anterior, pedido) -> {
+            if (pedido != null) {
+                mostrarDetalhesPedido(pedido);
+                tableHistorico.getSelectionModel().clearSelection();
+            }
+        });
     }
 
     private void iniciarNovoPedido() {
@@ -239,6 +303,16 @@ public class PedidoController implements Initializable {
         cmbCapacidade.setValue(null);
         chkConsignado.setSelected(false);
         txtCodigoBarril.requestFocus();
+    }
+
+    private void carregarResumoHoje() {
+        ResumoHoje resumoHoje = pedidoService.buscarResumoHoje();
+        lblLitrosHoje.setText(resumoHoje.litros() + "L");
+        lblVendasHoje.setText(formatarMoeda(resumoHoje.vendas()));
+    }
+
+    private void carregarHistoricoPedidos() {
+        pedidosHistorico.setAll(pedidoService.listarHistoricoPedidos());
     }
 
     private void atualizarResumoPedido() {
@@ -330,6 +404,68 @@ public class PedidoController implements Initializable {
 
     private String formatarMoeda(double valor) {
         return moeda.format(valor);
+    }
+
+    private String formatarEnum(String valor) {
+        return valor.replace("_", " ");
+    }
+
+    private void mostrarDetalhesPedido(PedidoHistorico pedido) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Detalhes do Pedido");
+        dialog.setHeaderText(
+                pedido.nomeCliente() + " | " + pedido.dataHora().format(dataHoraFormatter)
+        );
+
+        Label resumo = new Label(String.format(
+                "%s barril(is) | %d L | %s",
+                pedido.quantidadeBarris(),
+                pedido.litrosTotal(),
+                formatarMoeda(pedido.totalPedido())
+        ));
+        resumo.getStyleClass().add("dialog-summary");
+
+        TableView<BarrilPedido> tabelaDetalhes = new TableView<>();
+        tabelaDetalhes.setItems(FXCollections.observableArrayList(pedido.barris()));
+        tabelaDetalhes.setPrefHeight(260);
+
+        TableColumn<BarrilPedido, String> codigo = new TableColumn<>("Codigo");
+        codigo.setPrefWidth(110);
+        codigo.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getCodigoBarril()));
+
+        TableColumn<BarrilPedido, String> tipo = new TableColumn<>("Tipo");
+        tipo.setPrefWidth(120);
+        tipo.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getTipo().name()));
+
+        TableColumn<BarrilPedido, String> litros = new TableColumn<>("Litros");
+        litros.setPrefWidth(80);
+        litros.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getCapacidade().getLitros() + " L"));
+
+        TableColumn<BarrilPedido, String> total = new TableColumn<>("Total");
+        total.setPrefWidth(120);
+        total.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(formatarMoeda(cell.getValue().getSubtotal())));
+
+        TableColumn<BarrilPedido, String> status = new TableColumn<>("Status");
+        status.setPrefWidth(110);
+        status.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().isConsignado() ? "Consignado" : "Venda"));
+
+        tabelaDetalhes.getColumns().setAll(List.of(codigo, tipo, litros, total, status));
+
+        VBox conteudo = new VBox(10, resumo, tabelaDetalhes);
+        conteudo.getStyleClass().add("details-dialog-content");
+
+        URL css = getClass().getResource("/style.css");
+        if (css != null) {
+            dialog.getDialogPane().getStylesheets().add(css.toExternalForm());
+        }
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setContent(conteudo);
+        dialog.showAndWait();
     }
 
     private void mostrarAlerta(Alert.AlertType tipo, String titulo,

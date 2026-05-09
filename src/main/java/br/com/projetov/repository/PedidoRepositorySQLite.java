@@ -5,10 +5,13 @@ import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.BarrilPedido;
+import br.com.projetov.models.logistica.pedido.PedidoHistorico;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
 import br.com.projetov.models.logistica.pedido.PedidoPendente;
+import br.com.projetov.models.logistica.pedido.ResumoHoje;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,6 +106,67 @@ public class PedidoRepositorySQLite implements PedidoRepository {
     }
 
     @Override
+    public List<PedidoHistorico> buscarHistoricoPedidos() {
+        String sqlPedidos = "SELECT id, cliente, entregador, tipo_venda, data_hora, sincronizado " +
+                "FROM pedido_model ORDER BY data_hora DESC, id DESC";
+        String sqlBarris = "SELECT codigo_barril, tipo_chopp, capacidade, " +
+                "       preco_venda, consignado " +
+                "FROM barris_pedido WHERE pedido_id = ?";
+
+        List<PedidoHistorico> historico = new ArrayList<>();
+
+        try (Connection conn = ConnectionFactory.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rsPedidos = stmt.executeQuery(sqlPedidos)) {
+
+            while (rsPedidos.next()) {
+                long id = rsPedidos.getLong("id");
+                List<BarrilPedido> barris = carregarBarris(conn, sqlBarris, id);
+
+                historico.add(new PedidoHistorico(
+                        id,
+                        rsPedidos.getString("cliente"),
+                        rsPedidos.getString("entregador"),
+                        TipoVenda.valueOf(rsPedidos.getString("tipo_venda")),
+                        parseDataHora(rsPedidos.getString("data_hora")),
+                        rsPedidos.getInt("sincronizado") == 1,
+                        barris
+                ));
+            }
+
+        } catch (SQLException | RuntimeException e) {
+            System.err.println("Erro ao buscar historico de pedidos: " + e.getMessage());
+        }
+
+        return historico;
+    }
+
+    @Override
+    public ResumoHoje buscarResumoHoje() {
+        String sql = "SELECT COALESCE(SUM(b.capacidade), 0) AS litros, " +
+                "COALESCE(SUM(b.capacidade * b.preco_venda), 0.0) AS vendas " +
+                "FROM pedido_model p " +
+                "JOIN barris_pedido b ON b.pedido_id = p.id " +
+                "WHERE date(replace(p.data_hora, 'T', ' ')) = date('now', 'localtime')";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                return new ResumoHoje(
+                        rs.getInt("litros"),
+                        rs.getDouble("vendas")
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao buscar resumo do dia: " + e.getMessage());
+        }
+
+        return new ResumoHoje(0, 0.0);
+    }
+
+    @Override
     public List<PedidoPendente> buscarPendentesSync(){
         String sqlPedidos = "SELECT id, cliente, entregador, tipo_venda, data_hora " +
                 "FROM pedido_model WHERE sincronizado = 0";
@@ -182,5 +246,33 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 }
             }
         }
+    }
+
+    private List<BarrilPedido> carregarBarris(Connection conn, String sql, long pedidoId)
+            throws SQLException {
+
+        List<BarrilPedido> barris = new ArrayList<>();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, pedidoId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    barris.add(new BarrilPedido(
+                            rs.getString("codigo_barril"),
+                            TipoChopp.valueOf(rs.getString("tipo_chopp")),
+                            CapacidadeBarril.fromLitros(rs.getInt("capacidade")),
+                            rs.getDouble("preco_venda"),
+                            rs.getInt("consignado") == 1
+                    ));
+                }
+            }
+        }
+
+        return barris;
+    }
+
+    private LocalDateTime parseDataHora(String valor) {
+        return LocalDateTime.parse(valor.replace(" ", "T"));
     }
 }

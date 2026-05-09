@@ -9,144 +9,210 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="br.com.projetov.controller.PedidoController"
             prefHeight="720.0"
-            prefWidth="820.0">
+            prefWidth="900.0">
 
     <center>
-        <ScrollPane fitToWidth="true"
-                    hbarPolicy="NEVER"
-                    vbarPolicy="AS_NEEDED"
-                    styleClass="dashboard-scroll">
-            <content>
-                <VBox spacing="14" styleClass="dashboard-content">
-                    <padding>
-                        <Insets top="18" right="22" bottom="18" left="22"/>
-                    </padding>
+        <TabPane fx:id="mainTabs" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
+            <tabs>
+                <Tab text="Novo Pedido">
+                    <content>
+                        <ScrollPane fitToWidth="true"
+                                    hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"
+                                    styleClass="dashboard-scroll">
+                            <content>
+                                <VBox spacing="14" styleClass="dashboard-content">
+                                    <padding>
+                                        <Insets top="18" right="22" bottom="18" left="22"/>
+                                    </padding>
 
-                    <Label text="Novo Pedido de Chopp" styleClass="page-title"/>
+                                    <HBox alignment="CENTER_LEFT" spacing="14">
+                                        <Label text="Novo Pedido de Chopp" styleClass="page-title"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <HBox spacing="10" styleClass="metrics-row">
+                                            <VBox styleClass="metric-card">
+                                                <Label text="Litros hoje" styleClass="metric-label"/>
+                                                <Label fx:id="lblLitrosHoje"
+                                                       text="0L"
+                                                       styleClass="metric-value"/>
+                                            </VBox>
+                                            <VBox styleClass="metric-card">
+                                                <Label text="Vendas hoje" styleClass="metric-label"/>
+                                                <Label fx:id="lblVendasHoje"
+                                                       text="R$ 0,00"
+                                                       styleClass="metric-value"/>
+                                            </VBox>
+                                        </HBox>
+                                    </HBox>
 
-                    <TitledPane text="Dados do Pedido" collapsible="false">
-                        <GridPane hgap="12" vgap="10">
-                            <padding>
-                                <Insets top="12" right="12" bottom="12" left="12"/>
-                            </padding>
-                            <columnConstraints>
-                                <ColumnConstraints minWidth="110"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
-                            </columnConstraints>
+                                    <TitledPane text="Dados do Pedido" collapsible="false">
+                                        <GridPane hgap="12" vgap="10">
+                                            <padding>
+                                                <Insets top="12" right="12" bottom="12" left="12"/>
+                                            </padding>
+                                            <columnConstraints>
+                                                <ColumnConstraints minWidth="110"/>
+                                                <ColumnConstraints hgrow="ALWAYS"/>
+                                            </columnConstraints>
 
-                            <Label text="Cliente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <TextField fx:id="txtCliente"
-                                       promptText="Nome ou Razao Social"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="0"/>
+                                            <Label text="Cliente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                            <TextField fx:id="txtCliente"
+                                                       promptText="Nome ou Razao Social"
+                                                       GridPane.columnIndex="1"
+                                                       GridPane.rowIndex="0"/>
 
-                            <Label text="Entregador:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <TextField fx:id="txtEntregador"
-                                       promptText="Nome do entregador"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="1"/>
+                                            <Label text="Entregador:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                            <TextField fx:id="txtEntregador"
+                                                       promptText="Nome do entregador"
+                                                       GridPane.columnIndex="1"
+                                                       GridPane.rowIndex="1"/>
 
-                            <Label text="Modalidade:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                            <ComboBox fx:id="cmbTipoVenda"
-                                      promptText="PDV ou Venda Direta"
-                                      maxWidth="Infinity"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="2"/>
-                        </GridPane>
-                    </TitledPane>
+                                            <Label text="Modalidade:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                            <ComboBox fx:id="cmbTipoVenda"
+                                                      promptText="PDV ou Venda Direta"
+                                                      maxWidth="Infinity"
+                                                      GridPane.columnIndex="1"
+                                                      GridPane.rowIndex="2"/>
+                                        </GridPane>
+                                    </TitledPane>
 
-                    <TitledPane text="Adicionar Barril" collapsible="false">
-                        <GridPane hgap="12" vgap="10">
-                            <padding>
-                                <Insets top="12" right="12" bottom="12" left="12"/>
-                            </padding>
-                            <columnConstraints>
-                                <ColumnConstraints minWidth="110"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
-                                <ColumnConstraints minWidth="170"/>
-                            </columnConstraints>
+                                    <TitledPane text="Adicionar Barril" collapsible="false">
+                                        <GridPane hgap="12" vgap="10">
+                                            <padding>
+                                                <Insets top="12" right="12" bottom="12" left="12"/>
+                                            </padding>
+                                            <columnConstraints>
+                                                <ColumnConstraints minWidth="110"/>
+                                                <ColumnConstraints hgrow="ALWAYS"/>
+                                                <ColumnConstraints minWidth="170"/>
+                                            </columnConstraints>
 
-                            <Label text="Codigo:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <TextField fx:id="txtCodigoBarril"
-                                       promptText="Ex: B50-001"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="0"/>
+                                            <Label text="Codigo:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                            <TextField fx:id="txtCodigoBarril"
+                                                       promptText="Ex: B50-001"
+                                                       GridPane.columnIndex="1"
+                                                       GridPane.rowIndex="0"/>
 
-                            <Label text="Tipo:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <ComboBox fx:id="cmbTipoChopp"
-                                      promptText="Selecione o tipo"
-                                      maxWidth="Infinity"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="1"/>
+                                            <Label text="Tipo:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                            <ComboBox fx:id="cmbTipoChopp"
+                                                      promptText="Selecione o tipo"
+                                                      maxWidth="Infinity"
+                                                      GridPane.columnIndex="1"
+                                                      GridPane.rowIndex="1"/>
 
-                            <Label text="Capacidade:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                            <ComboBox fx:id="cmbCapacidade"
-                                      promptText="Selecione a capacidade"
-                                      maxWidth="Infinity"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="2"/>
+                                            <Label text="Capacidade:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                            <ComboBox fx:id="cmbCapacidade"
+                                                      promptText="Selecione a capacidade"
+                                                      maxWidth="Infinity"
+                                                      GridPane.columnIndex="1"
+                                                      GridPane.rowIndex="2"/>
 
-                            <CheckBox fx:id="chkConsignado"
-                                      text="Barril consignado"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="3"/>
+                                            <CheckBox fx:id="chkConsignado"
+                                                      text="Barril consignado"
+                                                      GridPane.columnIndex="1"
+                                                      GridPane.rowIndex="3"/>
 
-                            <VBox spacing="8"
-                                  GridPane.columnIndex="2"
-                                  GridPane.rowIndex="0"
-                                  GridPane.rowSpan="4">
-                                <Button id="btnAdicionarBarril"
-                                        text="Adicionar"
-                                        onAction="#handleAdicionarBarril"
-                                        maxWidth="Infinity"/>
-                                <Button id="btnRemoverBarril"
-                                        text="Remover selecionado"
-                                        onAction="#handleRemoverBarril"
-                                        maxWidth="Infinity"/>
-                            </VBox>
-                        </GridPane>
-                    </TitledPane>
+                                            <VBox spacing="8"
+                                                  GridPane.columnIndex="2"
+                                                  GridPane.rowIndex="0"
+                                                  GridPane.rowSpan="4">
+                                                <Button id="btnAdicionarBarril"
+                                                        text="Adicionar"
+                                                        onAction="#handleAdicionarBarril"
+                                                        maxWidth="Infinity"/>
+                                                <Button id="btnRemoverBarril"
+                                                        text="Remover selecionado"
+                                                        onAction="#handleRemoverBarril"
+                                                        maxWidth="Infinity"/>
+                                            </VBox>
+                                        </GridPane>
+                                    </TitledPane>
 
-                    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="section-heading">
-                        <Label text="Barris no Pedido" styleClass="section-title"/>
-                        <Label fx:id="lblResumoPedido"
-                               text="0 barris | 0 L"
-                               styleClass="muted-label"/>
-                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="section-heading">
+                                        <Label text="Barris no Pedido" styleClass="section-title"/>
+                                        <Label fx:id="lblResumoPedido"
+                                               text="0 barris | 0 L"
+                                               styleClass="muted-label"/>
+                                    </HBox>
 
-                    <TableView fx:id="tableBarris" prefHeight="230">
-                        <placeholder>
-                            <Label text="Nenhum barril adicionado ao pedido" styleClass="table-placeholder"/>
-                        </placeholder>
-                        <columns>
-                            <TableColumn fx:id="colCodigo" text="Codigo" prefWidth="110"/>
-                            <TableColumn fx:id="colTipo" text="Tipo" prefWidth="120"/>
-                            <TableColumn fx:id="colLitros" text="Litros" prefWidth="80"/>
-                            <TableColumn fx:id="colPrecoLitro" text="Valor por litro" prefWidth="130"/>
-                            <TableColumn fx:id="colValorBarril" text="Valor por barril" prefWidth="140"/>
-                            <TableColumn fx:id="colStatus" text="Status" prefWidth="115"/>
-                        </columns>
-                    </TableView>
+                                    <TableView fx:id="tableBarris" prefHeight="230">
+                                        <placeholder>
+                                            <Label text="Nenhum barril adicionado ao pedido"
+                                                   styleClass="table-placeholder"/>
+                                        </placeholder>
+                                        <columns>
+                                            <TableColumn fx:id="colCodigo" text="Codigo" prefWidth="110"/>
+                                            <TableColumn fx:id="colTipo" text="Tipo" prefWidth="120"/>
+                                            <TableColumn fx:id="colLitros" text="Litros" prefWidth="80"/>
+                                            <TableColumn fx:id="colPrecoLitro" text="Valor por litro" prefWidth="130"/>
+                                            <TableColumn fx:id="colValorBarril" text="Valor por barril" prefWidth="140"/>
+                                            <TableColumn fx:id="colStatus" text="Status" prefWidth="115"/>
+                                        </columns>
+                                    </TableView>
 
-                    <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="total-panel">
-                        <Label text="Total do pedido:" styleClass="total-caption"/>
-                        <Label fx:id="lblTotal" text="R$ 0,00" styleClass="total-value"/>
-                    </HBox>
+                                    <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="total-panel">
+                                        <Label text="Total do pedido:" styleClass="total-caption"/>
+                                        <Label fx:id="lblTotal" text="R$ 0,00" styleClass="total-value"/>
+                                    </HBox>
 
-                    <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="action-bar">
-                        <Button id="btnLimpar"
-                                text="Limpar"
-                                onAction="#handleLimpar"
-                                prefWidth="100"/>
-                        <Button fx:id="btnFinalizar"
-                                id="btnFinalizar"
-                                text="Salvar Pedido"
-                                onAction="#handleFinalizarPedido"
-                                prefWidth="160"/>
-                    </HBox>
-                </VBox>
-            </content>
-        </ScrollPane>
+                                    <HBox spacing="12" alignment="CENTER_RIGHT" styleClass="action-bar">
+                                        <Button id="btnLimpar"
+                                                text="Limpar"
+                                                onAction="#handleLimpar"
+                                                prefWidth="100"/>
+                                        <Button fx:id="btnFinalizar"
+                                                id="btnFinalizar"
+                                                text="Salvar Pedido"
+                                                onAction="#handleFinalizarPedido"
+                                                prefWidth="160"/>
+                                    </HBox>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+
+                <Tab text="Historico">
+                    <content>
+                        <ScrollPane fitToWidth="true"
+                                    hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"
+                                    styleClass="dashboard-scroll">
+                            <content>
+                                <VBox spacing="14" styleClass="dashboard-content">
+                                    <padding>
+                                        <Insets top="18" right="22" bottom="18" left="22"/>
+                                    </padding>
+
+                                    <HBox alignment="CENTER_LEFT" spacing="12">
+                                        <Label text="Historico de Pedidos" styleClass="page-title"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Button id="btnAtualizarHistorico"
+                                                text="Atualizar"
+                                                onAction="#handleAtualizarHistorico"/>
+                                    </HBox>
+
+                                    <TableView fx:id="tableHistorico" prefHeight="520">
+                                        <placeholder>
+                                            <Label text="Nenhum pedido salvo no banco local"
+                                                   styleClass="table-placeholder"/>
+                                        </placeholder>
+                                        <columns>
+                                            <TableColumn fx:id="colHistData" text="Data" prefWidth="145"/>
+                                            <TableColumn fx:id="colHistCliente" text="Cliente" prefWidth="190"/>
+                                            <TableColumn fx:id="colHistTipoVenda" text="Modalidade" prefWidth="120"/>
+                                            <TableColumn fx:id="colHistBarris" text="Barris" prefWidth="90"/>
+                                            <TableColumn fx:id="colHistTotal" text="Total" prefWidth="130"/>
+                                            <TableColumn fx:id="colHistSync" text="Nuvem" prefWidth="120"/>
+                                        </columns>
+                                    </TableView>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
     </center>
 
     <bottom>
@@ -158,10 +224,10 @@
                     radius="5"
                     styleClass="status-dot-offline"/>
             <Label fx:id="lblSyncStatus"
-                   text="Aguardando conexão..."
+                   text="Aguardando conexao..."
                    styleClass="sync-status-label"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="Fila de sincronização"
+            <Label text="Fila de sincronizacao"
                    styleClass="sync-status-hint"/>
         </HBox>
     </bottom>

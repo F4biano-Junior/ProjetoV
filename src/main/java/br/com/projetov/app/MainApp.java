@@ -50,7 +50,7 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/window.fxml")
         );
-        Scene scene = new Scene(loader.load(), 760, 680);
+        Scene scene = new Scene(loader.load(), 900, 720);
         scene.getStylesheets().add(Objects.requireNonNull(
                 getClass().getResource("/style.css"),
                 "style.css nao encontrado"
@@ -63,7 +63,7 @@ public class MainApp extends Application {
 
         stage.setTitle("Sistema de Vendas de Chopp");
         stage.setScene(scene);
-        stage.setMinWidth(720);
+        stage.setMinWidth(820);
         stage.setMinHeight(620);
         stage.show();
     }

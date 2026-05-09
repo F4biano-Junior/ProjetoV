@@ -12,6 +12,41 @@
     -fx-background-color: transparent;
 }
 
+.main-tabs {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 40;
+}
+
+.main-tabs .tab-header-area {
+    -fx-padding: 10 22 0 22;
+}
+
+.main-tabs .tab-header-background {
+    -fx-background-color: #101214;
+}
+
+.main-tabs .tab {
+    -fx-background-color: #1a1f24;
+    -fx-background-radius: 8 8 0 0;
+    -fx-border-color: #303740;
+    -fx-border-radius: 8 8 0 0;
+    -fx-padding: 8 18 8 18;
+}
+
+.main-tabs .tab:selected {
+    -fx-background-color: #20252b;
+    -fx-border-color: #34d399;
+}
+
+.main-tabs .tab .tab-label {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-weight: 800;
+}
+
+.main-tabs .tab:selected .tab-label {
+    -fx-text-fill: #f8fafc;
+}
+
 .page-title {
     -fx-font-size: 24px;
     -fx-font-weight: 800;
@@ -31,6 +66,31 @@
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-text-fill: #f1f5f9;
+}
+
+.metrics-row {
+    -fx-alignment: center-right;
+}
+
+.metric-card {
+    -fx-background-color: #20252b;
+    -fx-background-radius: 8;
+    -fx-border-color: #303740;
+    -fx-border-radius: 8;
+    -fx-padding: 10 14 10 14;
+    -fx-min-width: 138;
+}
+
+.metric-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #8b949e;
+}
+
+.metric-value {
+    -fx-font-size: 20px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #34d399;
 }
 
 .titled-pane {
@@ -157,6 +217,15 @@
     -fx-background-color: #64748b;
 }
 
+#btnAtualizarHistorico {
+    -fx-background-color: #334155;
+}
+
+#btnAtualizarHistorico:hover {
+    -fx-background-color: #475569;
+    -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.24), 14, 0.20, 0, 0);
+}
+
 .table-view {
     -fx-background-color: #181d22;
     -fx-background-radius: 8;
@@ -258,4 +327,32 @@
 .status-dot-offline {
     -fx-fill: #ef4444;
     -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.55), 10, 0.35, 0, 0);
+}
+
+.dialog-pane {
+    -fx-background-color: #15191d;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #20252b;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #f8fafc;
+}
+
+.dialog-pane .content.label,
+.dialog-pane .label {
+    -fx-text-fill: #d7dde6;
+}
+
+.details-dialog-content {
+    -fx-background-color: #15191d;
+    -fx-padding: 4;
+}
+
+.dialog-summary {
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #34d399;
 }
