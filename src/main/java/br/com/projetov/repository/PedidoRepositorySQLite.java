@@ -4,49 +4,45 @@ import br.com.projetov.config.ConnectionFactory;
 import br.com.projetov.models.logistica.BarrilPedido;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
 
-
 import java.sql.*;
 
 public class PedidoRepositorySQLite implements PedidoRepository {
 
     @Override
     public void salvar(PedidoModel pedido) throws SQLException {
-        // SQL para cabeçalho do pedido
-        String sqlPedido = "INSERT INTO pedido_model (cliente, entregador, data_hora) VALUES (?, ?, ?)";
-        // SQL para os barris (vinculados peço 'ID' do pedido)
+        // ALTERADO: tipo_venda incluído na query e nos parâmetros
+        String sqlPedido = "INSERT INTO pedido_model (cliente, entregador, tipo_venda, data_hora) " +
+                "VALUES (?, ?, ?, ?)";
         String sqlBarril = "INSERT INTO barris_pedido " +
                 "(pedido_id, codigo_barril, tipo_chopp, capacidade, preco_venda, consignado) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection()) {
-            conn.setAutoCommit(false); // Inicia a transação (tudo ou nada)
-            // 1. Salva o Pedido e recupera o ID que o SQLite gerou automaticamente
+            conn.setAutoCommit(false);
             try {
                 long idPedido = inserirPedido(conn, sqlPedido, pedido);
                 inserirBarris(conn, sqlBarril, idPedido, pedido);
                 conn.commit();
             } catch (SQLException e) {
-                // Rollback explícito e seguro
                 try {
                     conn.rollback();
                 } catch (SQLException rollbackEx) {
-                    // Loga o erro de rollback sem suprimir a exceção original
                     System.err.println("Falha crítica no rollback: " + rollbackEx.getMessage());
                 }
-                // Relança exceção original para a Service tratar
                 throw e;
             }
         }
     }
 
     private long inserirPedido(Connection conn, String sql, PedidoModel pedido) throws SQLException {
-        try (PreparedStatement pstmtPedido = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmtPedido.setString(1, pedido.getNomeCliente());
-            pstmtPedido.setString(2, pedido.getEntregador());
-            pstmtPedido.setString(3, pedido.getDataHora().toString());
-            pstmtPedido.executeUpdate();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, pedido.getNomeCliente());
+            pstmt.setString(2, pedido.getEntregador());
+            pstmt.setString(3, pedido.getTipoVenda().name()); // NOVO: enum → String
+            pstmt.setString(4, pedido.getDataHora().toString());
+            pstmt.executeUpdate();
 
-            try (ResultSet rs = pstmtPedido.getGeneratedKeys()) { // ← try-with-resources
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     return rs.getLong(1);
                 }
@@ -55,20 +51,19 @@ public class PedidoRepositorySQLite implements PedidoRepository {
         }
     }
 
-
-    // 2. Salva todos os barris do pedido
-    private void inserirBarris(Connection conn, String sql, long idPedido, PedidoModel pedido) throws SQLException {
-        try (PreparedStatement pstmtBarril = conn.prepareStatement(sql)) {
+    private void inserirBarris(Connection conn, String sql, long idPedido, PedidoModel pedido)
+            throws SQLException {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (BarrilPedido barril : pedido.getBarris()) {
-                pstmtBarril.setLong(1, idPedido);
-                pstmtBarril.setString(2, barril.getCodigoBarril());
-                pstmtBarril.setString(3, barril.getTipo().name());
-                pstmtBarril.setInt(4, barril.getCapacidade().getLitros());
-                pstmtBarril.setDouble(5, barril.getPrecoVenda());
-                pstmtBarril.setInt(6, barril.isConsignado() ? 1 : 0);
-                pstmtBarril.addBatch(); // Adiciona ao lote para salvar de uma vez
+                pstmt.setLong(1,   idPedido);
+                pstmt.setString(2, barril.getCodigoBarril());
+                pstmt.setString(3, barril.getTipo().name());
+                pstmt.setInt(4,    barril.getCapacidade().getLitros()); // mantido: INTEGER
+                pstmt.setDouble(5, barril.getPrecoVenda());
+                pstmt.setInt(6,    barril.isConsignado() ? 1 : 0);
+                pstmt.addBatch();
             }
-            pstmtBarril.executeBatch(); // Executa o salvamento de todos os barris
+            pstmt.executeBatch();
         }
     }
 
@@ -77,6 +72,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
         if (nomeCliente == null || nomeCliente.isBlank()) {
             return 0.0;
         }
+        // Sem alteração — volume usa capacidade (litros) que já era INTEGER
         String sql = "SELECT COALESCE(SUM(b.capacidade), 0.0) AS total " +
                 "FROM barris_pedido b " +
                 "JOIN pedido_model p ON b.pedido_id = p.id " +
@@ -94,7 +90,8 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Aviso: Histórico não localizado para '" + nomeCliente + "'. Assumindo como primeira compra. Erro: " + e.getMessage());
+            System.err.println("Aviso: Histórico não localizado para '" + nomeCliente +
+                    "'. Assumindo como primeira compra. Erro: " + e.getMessage());
         }
         return 0.0;
     }
