@@ -19,7 +19,11 @@ public class SheetsRepository {
         Sheets configuredSheetsService = null;
 
         String userHome = System.getProperty("user.home");
-        File propsFile = new File(userHome + File.separator + ".projetov" + File.separator + "application.properties");
+        File propsFile = new File(userHome + File.separator +
+                ".projetov" + File.separator + "application.properties");
+
+        System.out.println("DEBUG [1]: Procurando arquivo em -> " + propsFile.getAbsolutePath());
+        System.out.println("DEBUG [2]: Arquivo existe? -> " + propsFile.exists());
 
         if (propsFile.exists()) {
             try (FileInputStream input = new FileInputStream(propsFile)) {
@@ -27,17 +31,21 @@ public class SheetsRepository {
                 prop.load(input);
                 configuredSpreadsheetId = prop.getProperty("google.spreadsheet.id");
 
+                System.out.println("DEBUG [3]: ID lido do arquivo -> " + configuredSpreadsheetId);
+
                 if (configuredSpreadsheetId != null && !configuredSpreadsheetId.isBlank()) {
+                    System.out.println("DEBUG [4]: ID é válido! Tentando criar o Google Sheets Service...");
                     configuredSheetsService = GoogleSheetsConfig.getSheetsService();
+                    System.out.println("DEBUG [5]: Serviço Google foi criado com sucesso? -> " + (configuredSheetsService != null));
+                } else {
+                    System.out.println("DEBUG [4]: ID da planilha está nulo ou em branco no arquivo!");
                 }
             } catch (Exception e) {
-                System.err.println("ERRO: Sincronização Google Sheets indisponível. Falha ao inicializar: " + e.getMessage());
+                System.err.println("ERRO no Google: " + e.getMessage());
             }
-        } else {
-            System.err.println("AVISO: Arquivo application.properties não encontrado em " + propsFile.getAbsolutePath() + ". Modo offline ativo.");
         }
 
-        this.spreadsheetId = configuredSpreadsheetId;
+        this.spreadsheetId  = configuredSpreadsheetId;
         this.sheetsServices = configuredSheetsService;
     }
 

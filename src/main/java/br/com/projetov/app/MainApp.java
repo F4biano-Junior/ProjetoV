@@ -2,7 +2,7 @@ package br.com.projetov.app;
 
 
 import br.com.projetov.config.GlobalExceptionHandler;
-import br.com.projetov.repository.PedidoRepository;
+
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.sync.SyncWorker;

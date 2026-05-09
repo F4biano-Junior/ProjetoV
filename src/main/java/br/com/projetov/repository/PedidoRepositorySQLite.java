@@ -104,7 +104,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
 
     @Override
     public List<PedidoPendente> buscarPendentesSync(){
-        String sqlPedidos = "SELECT id, cliente, entregador, tipo, data_hora " +
+        String sqlPedidos = "SELECT id, cliente, entregador, tipo_venda, data_hora " +
                 "FROM pedido_model WHERE sincronizado = 0";
         String sqlBarris = "SELECT codigo_barril, tipo_chopp, capacidade, " +
                 "       preco_venda, consignado " +
