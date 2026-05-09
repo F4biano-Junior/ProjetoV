@@ -10,6 +10,7 @@ import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.PedidoService;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,6 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.shape.Circle;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -67,6 +69,10 @@ public class PedidoController implements Initializable {
     private Button btnFinalizar;
     @FXML
     private CheckBox chkConsignado;
+    @FXML
+    private Circle statusSyncIndicator;
+    @FXML
+    private Label lblSyncStatus;
 
     private PedidoModel pedidoAtual;
     private final ObservableList<BarrilPedido> itensPedido = FXCollections.observableArrayList();
@@ -94,8 +100,8 @@ public class PedidoController implements Initializable {
 
         configurarTabelaBarris();
         tableBarris.setItems(itensPedido);
+        btnFinalizar.disableProperty().bind(Bindings.isEmpty(itensPedido));
 
-        btnFinalizar.setDisable(true);
         iniciarNovoPedido();
     }
 
@@ -123,11 +129,7 @@ public class PedidoController implements Initializable {
             itensPedido.add(barrilAdicionado);
 
             atualizarResumoPedido();
-            btnFinalizar.setDisable(false);
-
-            txtCodigoBarril.clear();
-            chkConsignado.setSelected(false);
-            txtCodigoBarril.requestFocus();
+            limparCamposBarril();
         } catch (RuntimeException e) {
             mostrarAlerta(
                     Alert.AlertType.ERROR,
@@ -150,7 +152,6 @@ public class PedidoController implements Initializable {
         pedidoAtual.removerBarril(barrilSelecionado.getCodigoBarril());
         itensPedido.remove(barrilSelecionado);
         atualizarResumoPedido();
-        btnFinalizar.setDisable(itensPedido.isEmpty());
     }
 
     @FXML
@@ -220,8 +221,24 @@ public class PedidoController implements Initializable {
 
     private void iniciarNovoPedido() {
         pedidoAtual = new PedidoModel("", "", null);
-        btnFinalizar.setDisable(true);
         atualizarResumoPedido();
+    }
+
+    public void atualizarStatusSincronizacao(boolean sincronizacaoAtiva) {
+        lblSyncStatus.setText(sincronizacaoAtiva ? "Sincronização Ativa" : "Aguardando conexão...");
+
+        statusSyncIndicator.getStyleClass().removeAll("status-dot-online", "status-dot-offline");
+        statusSyncIndicator.getStyleClass().add(
+                sincronizacaoAtiva ? "status-dot-online" : "status-dot-offline"
+        );
+    }
+
+    private void limparCamposBarril() {
+        txtCodigoBarril.clear();
+        cmbTipoChopp.setValue(null);
+        cmbCapacidade.setValue(null);
+        chkConsignado.setSelected(false);
+        txtCodigoBarril.requestFocus();
     }
 
     private void atualizarResumoPedido() {

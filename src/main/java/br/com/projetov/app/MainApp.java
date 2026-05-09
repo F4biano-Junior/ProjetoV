@@ -3,6 +3,7 @@ package br.com.projetov.app;
 
 import br.com.projetov.config.GlobalExceptionHandler;
 
+import br.com.projetov.controller.PedidoController;
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.sync.SyncWorker;
@@ -13,14 +14,17 @@ import javafx.scene.Scene;
 
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 public class MainApp extends Application {
 
     private SyncWorker syncWorker;
+    private SheetsRepository cloudRepository;
 
     @Override
     public void init(){
         PedidoRepositorySQLite localRepository = new PedidoRepositorySQLite();
-        SheetsRepository       cloudRepository = new SheetsRepository();
+        cloudRepository = new SheetsRepository();
 
         syncWorker = new SyncWorker(localRepository, cloudRepository);
         syncWorker.iniciar();
@@ -47,6 +51,16 @@ public class MainApp extends Application {
                 getClass().getResource("/window.fxml")
         );
         Scene scene = new Scene(loader.load(), 760, 680);
+        scene.getStylesheets().add(Objects.requireNonNull(
+                getClass().getResource("/style.css"),
+                "style.css nao encontrado"
+        ).toExternalForm());
+
+        PedidoController controller = loader.getController();
+        controller.atualizarStatusSincronizacao(
+                cloudRepository != null && cloudRepository.isDisponivel()
+        );
+
         stage.setTitle("Sistema de Vendas de Chopp");
         stage.setScene(scene);
         stage.setMinWidth(720);
