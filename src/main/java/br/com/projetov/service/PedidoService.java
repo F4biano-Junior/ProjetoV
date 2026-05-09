@@ -8,6 +8,10 @@ import br.com.projetov.repository.PedidoRepository;
 
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.calculadora.CalculadoraPreco;
+import br.com.projetov.service.calculadora.regrascalculos.RegraConsignado;
+import br.com.projetov.service.calculadora.regrascalculos.RegraDescontoPDV;
+import br.com.projetov.service.calculadora.regrascalculos.RegraPreco;
+import br.com.projetov.service.calculadora.regrascalculos.RegrasPorVolume;
 
 import java.util.List;
 
@@ -19,11 +23,25 @@ public class PedidoService {
 
 
     public PedidoService(PedidoRepository localRepository,
+                         SheetsRepository cloudRepository) {
+
+        this.localRepository = localRepository;
+        this.cloudRepository = cloudRepository;
+
+      List<RegraPreco> cadeia = List.of(
+        new RegraConsignado(),
+              new RegraDescontoPDV(),
+              new RegrasPorVolume()
+      );
+      this.calcular = new CalculadoraPreco(cadeia);
+
+    }
+    public PedidoService(PedidoRepository localRepository,
                          SheetsRepository cloudRepository,
                          CalculadoraPreco calcular) {
         this.localRepository = localRepository;
         this.cloudRepository = cloudRepository;
-        this.calcular = calcular;
+        this.calcular        = calcular;
     }
 
         private void sincronizarComGoogleSheets(PedidoModel pedido) {

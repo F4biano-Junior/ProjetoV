@@ -10,6 +10,10 @@ import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.PedidoService;
 import br.com.projetov.service.calculadora.CalculadoraPreco;
+import br.com.projetov.service.calculadora.regrascalculos.RegraConsignado;
+import br.com.projetov.service.calculadora.regrascalculos.RegraDescontoPDV;
+import br.com.projetov.service.calculadora.regrascalculos.RegraPreco;
+import br.com.projetov.service.calculadora.regrascalculos.RegrasPorVolume;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,6 +31,7 @@ import javafx.scene.control.TextField;
 
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -76,14 +81,15 @@ public class PedidoController implements Initializable {
         try {
             PedidoRepository repositoryLocal = new PedidoRepositorySQLite();
             SheetsRepository repositoryNuvem = new SheetsRepository();
-            CalculadoraPreco calculadora = new CalculadoraPreco();
 
-            this.pedidoService = new PedidoService(repositoryLocal, repositoryNuvem, calculadora);
+
+            this.pedidoService = new PedidoService(repositoryLocal, repositoryNuvem);
+
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao inicializar dependencias do Controller: " + e.getMessage(), e);
+            throw new RuntimeException(
+                    "Erro ao inicializar dependencias do Controller: " + e.getMessage(), e);
         }
     }
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbTipoChopp.setItems(FXCollections.observableArrayList(TipoChopp.values()));
