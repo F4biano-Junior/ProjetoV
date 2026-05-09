@@ -5,6 +5,7 @@ import br.com.projetov.models.enums.TipoVenda;
 public class RegrasPorVolume implements RegraPreco{
     @Override
     public double aplicar(double precoBase, double volumeMensal, TipoVenda tipoVenda, boolean isConsignado) {
+        if (isConsignado) return precoBase;
         if (volumeMensal >= 1000){
             return precoBase - 1.00;
         }

@@ -9,11 +9,7 @@ import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
 import br.com.projetov.service.PedidoService;
-import br.com.projetov.service.calculadora.CalculadoraPreco;
-import br.com.projetov.service.calculadora.regrascalculos.RegraConsignado;
-import br.com.projetov.service.calculadora.regrascalculos.RegraDescontoPDV;
-import br.com.projetov.service.calculadora.regrascalculos.RegraPreco;
-import br.com.projetov.service.calculadora.regrascalculos.RegrasPorVolume;
+
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,7 +27,7 @@ import javafx.scene.control.TextField;
 
 import java.net.URL;
 import java.text.NumberFormat;
-import java.util.List;
+
 import java.util.Locale;
 import java.util.ResourceBundle;
 

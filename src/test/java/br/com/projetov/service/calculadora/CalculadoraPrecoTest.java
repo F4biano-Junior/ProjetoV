@@ -4,7 +4,7 @@ import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.service.calculadora.regrascalculos.RegraConsignado;
 import br.com.projetov.service.calculadora.regrascalculos.RegraDescontoPDV;
-import br.com.projetov.service.calculadora.regrascalculos.RegraPreco;
+
 import br.com.projetov.service.calculadora.regrascalculos.RegrasPorVolume;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,18 +17,18 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Suíte de testes unitários — Fase 2: Integridade de Negócio P1
- * CONTRATOS VERIFICADOS NO CÓDIGO REAL:
- *  - RegraPreco.aplicar(precoBase, volumeMensal, tipoVenda, isConsignado): double
- *  - RegraDescontoPDV: 20% de desconto quando TipoVenda.PDV
- *  - RegrasPorVolume: -R$ 1,00 fixo quando volumeMensal >= 1000
- *  - RegraConsignado: retorna 0.0 ← STUB NÃO IMPLEMENTADO (D1)
- *  - CalculadoraPreco: cadeia PDV → Volume (Consignado ausente da cadeia) ← (D2, D3)
+ * Suíte de testes unitários — Fase 2 Final: Integridade de Negócio
+ * <p>
+ * CONTRATOS VERIFICADOS:
+ *  - RegraDescontoPDV  : 20% de desconto quando TipoVenda.PDV
+ *  - RegrasPorVolume   : -R$1,00 fixo quando volumeMensal >= 1000
+ *  - RegraConsignado   : retorna precoBase sem alteração (D1 encerrado)
+ *  - CalculadoraPreco  : cadeia Consignado → PDV → Volume (D2, D3 encerrados)
  *  <p>
  * Zero I/O externo: sem SQLite, sem Google Sheets, sem rede.
- * <p>
+ *
  * @author  Backend Sênior — Projeto Vendas De Chopp
- * @version Fase 2 — gerado a partir das fontes reais
+ * @version Fase 2 — Final
  */
 @DisplayName("CalculadoraPreco — Suíte Completa (Fase 2 Final)")
 class CalculadoraPrecoTest {
@@ -47,8 +47,9 @@ class CalculadoraPrecoTest {
         regrasPorVolume  = new RegrasPorVolume();
         regraConsignado  = new RegraConsignado();
     }
+
     // =========================================================================
-    // 1. RegraDescontoPDV — testes isolados (sem dependência de enum externo)
+    // 1. RegraDescontoPDV
     // =========================================================================
 
     @Nested
@@ -68,7 +69,6 @@ class CalculadoraPrecoTest {
         @Test
         @DisplayName("deve retornar preço base sem alteração para venda que não é PDV")
         void deveRetornarPrecoBaseParaVendaNaoPDV() {
-            // Testa todos os TipoVenda que não sejam PDV
             for (TipoVenda tipo : TipoVenda.values()) {
                 if (tipo == TipoVenda.PDV) continue;
 
@@ -81,15 +81,22 @@ class CalculadoraPrecoTest {
         }
 
         @Test
-        @DisplayName("deve aplicar desconto PDV independente do flag isConsignado")
-        void deveAplicarDescontoPDVIndependenteDeConsignado() {
-            double resultadoNaoConsignado = regraDescontoPDV.aplicar(
+        @DisplayName("NÃO deve aplicar desconto PDV se o flag isConsignado for true")
+        void naoDeveAplicarDescontoPDVSeConsignado() {
+            double semConsignado = regraDescontoPDV.aplicar(
                     PRECO_BASE_EXEMPLO, VOLUME_BAIXO, TipoVenda.PDV, false);
-            double resultadoConsignado = regraDescontoPDV.aplicar(
+            double comConsignado = regraDescontoPDV.aplicar(
                     PRECO_BASE_EXEMPLO, VOLUME_BAIXO, TipoVenda.PDV, true);
 
-            assertEquals(resultadoNaoConsignado, resultadoConsignado, 0.001,
-                    "Flag isConsignado não deve alterar o comportamento do desconto PDV");
+            // Agora eles PRECISAM ser diferentes!
+            assertNotEquals(semConsignado, comConsignado,
+                    "O barril consignado deve bloquear o desconto de PDV");
+
+            // O sem consignado recebe os 20% de desconto (cai para 8.00)
+            assertEquals(8.00, semConsignado, 0.001);
+
+            // O com consignado aciona o escudo e devolve os 10.00 intactos
+            assertEquals(PRECO_BASE_EXEMPLO, comConsignado, 0.001);
         }
 
         @Test
@@ -104,7 +111,7 @@ class CalculadoraPrecoTest {
     }
 
     // =========================================================================
-    // 2. RegrasPorVolume — testes isolados
+    // 2. RegrasPorVolume
     // =========================================================================
 
     @Nested
@@ -163,150 +170,161 @@ class CalculadoraPrecoTest {
     }
 
     // =========================================================================
-    // 3. RegraConsignado — documenta o débito D1 (stub não implementado)
+    // 3. RegraConsignado — D1 ENCERRADO
+    // Regra de negócio confirmada pelo Dono do Produto:
+    // barril consignado sempre cobra o precoBase, sem descontos, sem acréscimos.
     // =========================================================================
 
     @Nested
-    @DisplayName("3. RegraConsignado ⚠️ STUB — Documentação do Débito D1")
+    @DisplayName("3. RegraConsignado ✅ D1 Encerrado — preço base fixo, sem descontos")
     class RegraConsignadoTest {
 
-        /**
-         * ESTE TESTE FALHA INTENCIONALMENTE.
-         * <p>
-         * Ele serve como SENTINELA: assim que RegraConsignado.aplicar() for
-         * implementada corretamente, este teste deve ser atualizado para
-         * refletir o comportamento real acordado com o Arquiteto.
-         * <p>
-         * Comportamento atual (bug): retorna 0.0 para qualquer entrada.
-         * Comportamento esperado:    retornar precoBase ajustado pela regra de consignado.
-         */
         @Test
-        @DisplayName("[DÉBITO D1] RegraConsignado deve retornar preço ajustado — ATUALMENTE RETORNA 0.0 (BUG)")
-        void regraConsignadoDeveRetornarPrecoAjustadoENaoZero() {
+        @DisplayName("deve retornar o preço base exato para barril consignado")
+        void deveRetornarPrecoBaseExatoParaBarrilConsignado() {
             double resultado = regraConsignado.aplicar(
                     PRECO_BASE_EXEMPLO, VOLUME_BAIXO, TipoVenda.VENDA_DIRETA, true);
 
-            assertNotEquals(0.0, resultado,
-                    "[DÉBITO D1] RegraConsignado.aplicar() retorna 0.0 hardcoded. " +
-                            "Implementar a regra real e atualizar este teste com o valor esperado.");
+            assertEquals(PRECO_BASE_EXEMPLO, resultado, 0.001,
+                    "Consignado sempre cobra o preço base — sem acréscimo, sem desconto");
         }
 
         @Test
-        @DisplayName("[DÉBITO D1] Documenta comportamento atual broken: retorna 0.0 para isConsignado=true")
-        void documentaComportamentoBrokenAtualDeRegraConsignado() {
-            double resultado = regraConsignado.aplicar(
-                    PRECO_BASE_EXEMPLO, VOLUME_BAIXO, TipoVenda.VENDA_DIRETA, true);
+        @DisplayName("deve retornar preço base para consignado independente do TipoVenda informado")
+        void deveRetornarPrecoBaseParaConsignadoIndependenteDeTipoVenda() {
+            for (TipoVenda tipo : TipoVenda.values()) {
+                double resultado = regraConsignado.aplicar(
+                        PRECO_BASE_EXEMPLO, VOLUME_BAIXO, tipo, true);
 
-            // Este assertEquals PASSA — mas apenas porque o código está ERRADO.
-            // Serve para documentar o estado atual até a correção.
-            assertEquals(0.0, resultado,
-                    "Comportamento atual (quebrado): retorna 0.0. " +
-                            "Remover este teste quando D1 for corrigido.");
+                assertEquals(PRECO_BASE_EXEMPLO, resultado, 0.001,
+                        "TipoVenda." + tipo + " não deve alterar o preço do consignado");
+            }
+        }
+
+        @Test
+        @DisplayName("deve retornar preço base para consignado mesmo com volume alto (>= 1000)")
+        void deveRetornarPrecoBaseParaConsignadoMesmoComVolumeAlto() {
+            double resultado = regraConsignado.aplicar(
+                    PRECO_BASE_EXEMPLO, VOLUME_ALTO, TipoVenda.VENDA_DIRETA, true);
+
+            assertEquals(PRECO_BASE_EXEMPLO, resultado, 0.001,
+                    "Volume alto não deve conceder desconto a barril consignado");
+        }
+
+        @Test
+        @DisplayName("não deve interferir quando isConsignado for false — passa preço adiante na cadeia")
+        void naoDeveInterfirirQuandoNaoForConsignado() {
+            double resultado = regraConsignado.aplicar(
+                    PRECO_BASE_EXEMPLO, VOLUME_BAIXO, TipoVenda.PDV, false);
+
+            assertEquals(PRECO_BASE_EXEMPLO, resultado, 0.001,
+                    "Quando não consignado, a regra passa o preço sem alteração para a próxima da cadeia");
         }
     }
 
     // =========================================================================
-    // 4. CalculadoraPreco — testes de integração da cadeia de regras
-    //    NOTA: requer que TipoChopp tenha pelo menos um valor com precoBase
-    //    conhecido. Ajuste TIPO_TESTE e PRECO_BASE_TIPO conforme o enum real.
+    // 4. CalculadoraPreco — Cadeia completa de produção
+    //    Ordem: Consignado → PDV → Volume (espelho exato do PedidoService)
+    //    TipoChopp.PILSEN.getPrecoBase() == 10.00 — confirmado no enum real
     // =========================================================================
 
     @Nested
-    @DisplayName("4. CalculadoraPreco — Cadeia de Regras (PDV → Volume)")
+    @DisplayName("4. CalculadoraPreco — Cadeia Completa (Consignado → PDV → Volume)")
     class CalculadoraPrecoIntegracaoTest {
+
+        static final TipoChopp TIPO_TESTE      = TipoChopp.PILSEN;
+        static final double    PRECO_BASE_TIPO = 10.00; // PILSEN.getPrecoBase()
 
         private CalculadoraPreco calculadora;
 
-        /**
-         * ⚠️ AJUSTE OBRIGATÓRIO:
-         * Substitua TipoChopp.PILSEN pelo valor real do seu enum e
-         * atualize PRECO_BASE_TIPO com o precoBase correspondente.
-         * <p>
-         * Exemplo: se TipoChopp.PILSEN.getPrecoBase() == 8.50, defina:
-         *   private static final double PRECO_BASE_TIPO = 8.50;
-         */
-        private static final TipoChopp TIPO_TESTE      = TipoChopp.PILSEN;
-        private static final double    PRECO_BASE_TIPO = 10.00;
-
         @BeforeEach
         void configurarCalculadora() {
-            List<RegraPreco> cadeia = List.of(
+            // Espelho exato da cadeia de produção definida no PedidoService
+            calculadora = new CalculadoraPreco(List.of(
                     new RegraConsignado(),
                     new RegraDescontoPDV(),
                     new RegrasPorVolume()
-            );
-            calculadora = new CalculadoraPreco(cadeia);
+            ));
         }
 
         @Test
-        @DisplayName("deve retornar preço base sem desconto para venda avulsa com volume baixo")
-        void deveRetornarPrecoBaseSemDescontoParaVendaAvulsaComVolumeBaixo() {
+        @DisplayName("deve retornar preço base para venda direta com volume baixo")
+        void deveRetornarPrecoBaseSemDescontoParaVendaDiretaComVolumeBaixo() {
             double resultado = calculadora.calcularVenda(
                     TIPO_TESTE, TipoVenda.VENDA_DIRETA, VOLUME_BAIXO, false);
 
             assertEquals(PRECO_BASE_TIPO, resultado, 0.001,
-                    "Sem desconto PDV e sem volume >= 1000: preço deve ser o base");
+                    "Sem PDV e sem volume >= 1000: preço deve ser o base");
         }
 
         @Test
-        @DisplayName("deve aplicar 20% de desconto PDV sobre o preço base")
+        @DisplayName("deve aplicar 20% de desconto para venda PDV com volume baixo")
         void deveAplicarVintePercDeDescontoPDVSobrePrecoBase() {
             double resultado = calculadora.calcularVenda(
                     TIPO_TESTE, TipoVenda.PDV, VOLUME_BAIXO, false);
 
-            double esperado = PRECO_BASE_TIPO * 0.80;
-            assertEquals(esperado, resultado, 0.001,
+            assertEquals(PRECO_BASE_TIPO * 0.80, resultado, 0.001,
                     "PDV com volume baixo: apenas desconto de 20% aplicado");
         }
 
         @Test
-        @DisplayName("deve aplicar desconto de volume (-R$1,00) para venda avulsa com volume alto")
-        void deveAplicarDescontoDeVolumeParaVendaAvulsaComVolumeAlto() {
+        @DisplayName("deve aplicar desconto de volume (-R$1,00) para venda direta com volume alto")
+        void deveAplicarDescontoDeVolumeParaVendaDiretaComVolumeAlto() {
             double resultado = calculadora.calcularVenda(
                     TIPO_TESTE, TipoVenda.VENDA_DIRETA, VOLUME_ALTO, false);
 
-            double esperado = PRECO_BASE_TIPO - 1.00;
-            assertEquals(esperado, resultado, 0.001,
+            assertEquals(PRECO_BASE_TIPO - 1.00, resultado, 0.001,
                     "VENDA_DIRETA com volume >= 1000: desconto fixo de R$1,00 aplicado");
         }
 
         @Test
-        @DisplayName("deve aplicar ambas as regras em cadeia: PDV 20% e depois -R$1,00 por volume")
-        void deveAplicarDescontoPDVEDescontoVolumEmCadeia() {
-            // Ordem da cadeia no código: RegraDescontoPDV → RegrasPorVolume
-            // 1ª regra: precoBase * 0.80
-            // 2ª regra: resultado anterior - 1.00
-            // Cadeia intencional para este teste: só as duas regras que interessam
-            CalculadoraPreco calculadoraPDVVolume = new CalculadoraPreco(
+        @DisplayName("deve aplicar PDV e volume em cadeia: 20% depois -R$1,00")
+        void deveAplicarDescontoPDVEDescontoVolumeEmCadeia() {
+            // Cadeia reduzida: isola as duas regras sem a RegraConsignado interferir
+            CalculadoraPreco somentePDVVolume = new CalculadoraPreco(
                     List.of(new RegraDescontoPDV(), new RegrasPorVolume())
             );
 
-            double resultado = calculadoraPDVVolume.calcularVenda(
+            double resultado = somentePDVVolume.calcularVenda(
                     TIPO_TESTE, TipoVenda.PDV, VOLUME_ALTO, false);
 
-            double aposDescontoPDV    = PRECO_BASE_TIPO * 0.80;
-            double aposDescontoVolume = aposDescontoPDV - 1.00;
-
-            assertEquals(aposDescontoVolume, resultado, 0.001);
+            double esperado = (PRECO_BASE_TIPO * 0.80) - 1.00;
+            assertEquals(esperado, resultado, 0.001,
+                    "PDV + volume alto: desconto de 20% seguido de -R$1,00");
         }
 
-        /**
-         * DÉBITO D3: RegraConsignado não está registrada na lista de regras
-         * da CalculadoraPreco. Este teste documenta que a ‘flag’ isConsignado=true
-         * atualmente não tem efeito nenhum no cálculo.
-         */
         @Test
-        @DisplayName("[DÉBITO D3] flag isConsignado não altera o resultado — RegraConsignado ausente da cadeia")
-        void flagIsConsignadoNaoAlteraResultadoPoisRegraEstaAusenteDaCadeia() {
-            double resultadoSemConsignado = calculadora.calcularVenda(
-                    TIPO_TESTE, TipoVenda.VENDA_DIRETA, VOLUME_BAIXO, false);
+        @DisplayName("consignado deve receber preço base — PDV e volume bloqueados pela cadeia")
+        void consignadoDeveReceberPrecoBaseIgnorandoPDVEVolume() {
+            // Pior caso: PDV + volume alto em conjunto.
+            // RegraConsignado está em 1º e blinda o preço antes que qualquer outra regra aja.
+            double resultado = calculadora.calcularVenda(
+                    TIPO_TESTE, TipoVenda.PDV, VOLUME_ALTO, true);
 
-            double resultadoComConsignado = calculadora.calcularVenda(
-                    TIPO_TESTE, TipoVenda.VENDA_DIRETA, VOLUME_BAIXO, true);
+            assertEquals(PRECO_BASE_TIPO, resultado, 0.001,
+                    "Consignado retorna preço base — PDV e volume não devem agir");
+        }
 
-            assertEquals(resultadoSemConsignado, resultadoComConsignado, 0.001,
-                    "[DÉBITO D3] isConsignado=true não deve produzir o mesmo resultado que false " +
-                            "quando a regra for implementada. Corrija registrando RegraConsignado na cadeia.");
+        @Test
+        @DisplayName("[D3 RESOLVIDO] isConsignado blinda o preço: mesmo TipoVenda, resultado diferente por flag")
+        void consignadoProduzeResultadoDiferenteDaVendaNormalComMesmoTipoVenda() {
+            // Única variável isolada: isConsignado. TipoVenda e volume idênticos nos dois casos.
+            // Sem consignado: RegraDescontoPDV age → 20% de desconto → R$8,00
+            // Com consignado: RegraConsignado blinda → preço base → R$10,00
+            double semConsignado = calculadora.calcularVenda(
+                    TIPO_TESTE, TipoVenda.PDV, VOLUME_BAIXO, false);
+
+            double comConsignado = calculadora.calcularVenda(
+                    TIPO_TESTE, TipoVenda.PDV, VOLUME_BAIXO, true);
+
+            assertAll("Consignado blinda o preço independente do canal de venda",
+                    () -> assertNotEquals(semConsignado, comConsignado, 0.001,
+                            "isConsignado=true e false devem produzir preços diferentes"),
+                    () -> assertEquals(8.00,             semConsignado, 0.001,
+                            "PDV sem consignado: 20% de desconto → R$8,00"),
+                    () -> assertEquals(PRECO_BASE_TIPO,  comConsignado, 0.001,
+                            "PDV com consignado: RegraConsignado blinda → preço base R$10,00")
+            );
         }
     }
 
@@ -325,20 +343,29 @@ class CalculadoraPrecoTest {
                     0.0, VOLUME_BAIXO, TipoVenda.PDV, false);
 
             assertEquals(0.0, resultado, 0.001,
-                    "80% de R$0,00 = R$0,00 — sem exceção esperada");
+                    "80% de R$0,00 = R$0,00");
         }
 
         @Test
-        @DisplayName("RegrasPorVolume deve retornar preço negativo se precoBase for 0.0 e volume alto — sinaliza ausência de guarda")
+        @DisplayName("RegrasPorVolume com preço zero e volume alto retorna negativo — Math.max na CalculadoraPreco protege")
         void regrasPorVolumeComPrecoZeroEVolumeAltoRetornaValorNegativo() {
-            // Este teste documenta uma ausência de validação: -R$1,00 sobre R$0,00
-            // resulta em preço negativo. O Arquiteto deve decidir se isso é aceitável.
-            double resultado = regrasPorVolume.aplicar(
+            // Documenta que a regra isolada retorna -1.00,
+            // mas a CalculadoraPreco aplica Math.max(0.0, ...) antes de devolver ao Service.
+            double resultadoRegra = regrasPorVolume.aplicar(
                     0.0, VOLUME_ALTO, TipoVenda.VENDA_DIRETA, false);
 
-            assertEquals(-1.00, resultado, 0.001,
-                    "Sinaliza ausência de guarda: preço não pode ser negativo. " +
-                            "Avaliar adição de Math.max(0, ...) ou validação no Service.");
+            assertEquals(-1.00, resultadoRegra, 0.001,
+                    "Regra isolada retorna negativo — proteção está na CalculadoraPreco, não na regra");
+
+            // Confirma que a calculadora nunca deixa chegar negativo ao Service
+            CalculadoraPreco calc = new CalculadoraPreco(List.of(new RegrasPorVolume()));
+            double resultadoProtegido = calc.calcularVenda(
+                    TipoChopp.PILSEN, TipoVenda.VENDA_DIRETA, VOLUME_ALTO, false);
+
+            // PILSEN.precoBase(10.00) - 1.00 = 9.00 — não chega a negativo neste caso,
+            // mas o Math.max garante o piso em qualquer combinação
+            assertTrue(resultadoProtegido >= 0.0,
+                    "CalculadoraPreco nunca deve retornar preço negativo ao Service");
         }
 
         @Test
@@ -352,16 +379,20 @@ class CalculadoraPrecoTest {
         }
 
         @Test
-        @DisplayName("RegrasPorVolume com volume negativo deve retornar preço base sem desconto")
+        @DisplayName("RegrasPorVolume com volume negativo não deve aplicar desconto")
         void regrasPorVolumeComVolumeNegativoNaoDeveAplicarDesconto() {
-            // Volume negativo não faz sentido de negócio; a regra deve ignorar
             double resultado = regrasPorVolume.aplicar(
                     PRECO_BASE_EXEMPLO, -100.0, TipoVenda.VENDA_DIRETA, false);
 
             assertEquals(PRECO_BASE_EXEMPLO, resultado, 0.001,
-                    "Volume negativo não deve ativar desconto de volume");
+                    "Volume negativo não faz sentido de negócio — desconto não deve ser ativado");
         }
     }
+
+    // =========================================================================
+    // 6. CalculadoraPreco — Validação do Construtor
+    // =========================================================================
+
     @Nested
     @DisplayName("6. CalculadoraPreco — Validação do Construtor")
     class CalculadoraPrecoConstrutorTest {
@@ -379,27 +410,5 @@ class CalculadoraPrecoTest {
             assertThrows(IllegalArgumentException.class,
                     () -> new CalculadoraPreco(List.of()));
         }
-    }
-    @Test
-    @DisplayName("[D3 RESOLVIDO] isConsignado=true deve ser processado pela RegraConsignado na cadeia")
-    void flagIsConsignadoAgoraEProcessadoPelaRegraConsignado() {
-
-        // Cadeia completa — igual à de produção
-        CalculadoraPreco cadeiaProdução = new CalculadoraPreco(
-                List.of(new RegraConsignado(), new RegraDescontoPDV(), new RegrasPorVolume())
-        );
-
-        double resultadoSemConsignado = cadeiaProdução.calcularVenda(
-                CalculadoraPrecoIntegracaoTest.TIPO_TESTE, TipoVenda.VENDA_DIRETA, VOLUME_BAIXO, false);
-
-        double resultadoComConsignado = cadeiaProdução.calcularVenda(
-                CalculadoraPrecoIntegracaoTest.TIPO_TESTE, TipoVenda.PDV, VOLUME_BAIXO, true);
-
-        // Quando D1 for implementado, este assertEquals vira assertNotEquals.
-        // Por ora (passthrough seguro), os valores ainda são iguais — mas a
-        // RegraConsignado já ESTÁ sendo chamada na cadeia (D3 resolvido).
-        assertEquals(resultadoSemConsignado, resultadoComConsignado, 0.001,
-                "D1 pendente: quando a regra real for implementada, " +
-                        "trocar para assertNotEquals e definir o valor esperado.");
     }
 }

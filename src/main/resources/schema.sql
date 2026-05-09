@@ -3,10 +3,10 @@ CREATE TABLE IF NOT EXISTS pedido_model (
                                             id          INTEGER  PRIMARY KEY AUTOINCREMENT,
                                             cliente     TEXT     NOT NULL,
                                             entregador  TEXT     NOT NULL,
-                                            tipo_venda  TEXT     NOT NULL,  -- NOVO: persiste TipoVenda.name() ex: "PDV", "AVULSO"
+                                            tipo_venda  TEXT     NOT NULL,
+                                            sincronizado INTEGER DEFAULT 0, -- NOVO: 0 = Pendente de envio, 1 = Enviado pro Sheets
                                             data_hora   DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
 -- 2. Tabela filha que representa os itens BarrilPedido (Os Produtos da Venda)
 CREATE TABLE IF NOT EXISTS barris_pedido (
                                              id            INTEGER PRIMARY KEY AUTOINCREMENT,
