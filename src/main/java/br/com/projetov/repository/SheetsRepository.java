@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class SheetsRepository {
+
     private final String spreadsheetId;
     private final Sheets sheetsServices;
 
@@ -38,6 +39,10 @@ public class SheetsRepository {
 
         this.spreadsheetId = configuredSpreadsheetId;
         this.sheetsServices = configuredSheetsService;
+    }
+
+    public boolean isDisponivel() {
+        return !isSyncDispositive();
     }
 
     public void adicionarLinha(String range, List<List<Object>> valores) throws Exception {

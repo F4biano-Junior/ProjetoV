@@ -17,36 +17,34 @@ import java.util.List;
 
 public class PedidoService {
     private final PedidoRepository localRepository;
-    private final SheetsRepository cloudRepository;
     private final CalculadoraPreco calcular;
 
 
 
     public PedidoService(PedidoRepository localRepository,
                          SheetsRepository cloudRepository) {
-
         this.localRepository = localRepository;
-        this.cloudRepository = cloudRepository;
 
-      List<RegraPreco> cadeia = List.of(
-        new RegraConsignado(),
-              new RegraDescontoPDV(),
-              new RegrasPorVolume()
-      );
-      this.calcular = new CalculadoraPreco(cadeia);
-
+        List<RegraPreco> cadeia = List.of(
+                new RegraConsignado(),
+                new RegraDescontoPDV(),
+                new RegrasPorVolume()
+        );
+        this.calcular = new CalculadoraPreco(cadeia);
     }
+    /** Construtor para testes: permite injetar calculadora configurada externamente. */
     public PedidoService(PedidoRepository localRepository,
                          SheetsRepository cloudRepository,
                          CalculadoraPreco calcular) {
         this.localRepository = localRepository;
-        this.cloudRepository = cloudRepository;
         this.calcular        = calcular;
     }
 
-        private void sincronizarComGoogleSheets(PedidoModel pedido) {
+
+
+    private void sincronizarComGoogleSheets(PedidoModel pedido) {
             try {
-                // Como sua Model não tem um getTotal(), calculamos aqui para a planilha
+                // Como a sua Model não tem um getTotal(), calculamos aqui para a planilha
                 double totalPedido = pedido.getBarris().stream()
                         .mapToDouble(BarrilPedido::getSubtotal)
                         .sum();
@@ -66,7 +64,6 @@ public class PedidoService {
                         )
                 );
 
-                cloudRepository.adicionarLinha("Vendas!A2", linha);
 
             } catch (Exception e) {
                 System.err.println("Erro na sincronização Google Sheets: " + e.getMessage());
@@ -90,11 +87,10 @@ public class PedidoService {
         }
     }
     public void  finalizarPedido(PedidoModel pedido) throws Exception {
-        //validações finais
+
         if (pedido.getBarris().isEmpty()){
         throw new Exception("Não é possível salvar um pedido sem barris");
         }
         localRepository.salvar(pedido);
-        sincronizarComGoogleSheets(pedido);
     }
 }

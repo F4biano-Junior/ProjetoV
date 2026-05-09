@@ -1,10 +1,16 @@
 package br.com.projetov.repository;
 
 import br.com.projetov.config.ConnectionFactory;
+import br.com.projetov.models.enums.CapacidadeBarril;
+import br.com.projetov.models.enums.TipoChopp;
+import br.com.projetov.models.enums.TipoVenda;
 import br.com.projetov.models.logistica.BarrilPedido;
 import br.com.projetov.models.logistica.pedido.PedidoModel;
+import br.com.projetov.models.logistica.pedido.PedidoPendente;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PedidoRepositorySQLite implements PedidoRepository {
 
@@ -94,5 +100,87 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                     "'. Assumindo como primeira compra. Erro: " + e.getMessage());
         }
         return 0.0;
+    }
+
+    @Override
+    public List<PedidoPendente> buscarPendentesSync(){
+        String sqlPedidos = "SELECT id, cliente, entregador, tipo, data_hora " +
+                "FROM pedido_model WHERE sincronizado = 0";
+        String sqlBarris = "SELECT codigo_barril, tipo_chopp, capacidade, " +
+                "       preco_venda, consignado " +
+                "FROM barris_pedido WHERE pedido_id = ?";
+
+        List<PedidoPendente> pendentes = new ArrayList<>();
+
+        try (Connection conn        = ConnectionFactory.getConnection();
+             Statement  stmt        = conn.createStatement();
+             ResultSet  rsPedidos   = stmt.executeQuery(sqlPedidos)) {
+
+            while (rsPedidos.next()) {
+                long      id       = rsPedidos.getLong("id");
+                PedidoModel pedido = reconstruirPedido(rsPedidos);
+
+                carregarBarris(conn, sqlBarris, id, pedido);
+                pendentes.add(new PedidoPendente(id, pedido));
+            }
+
+        } catch (SQLException e) {
+            // Tolerante a falhas: retorna o que foi carregado até o erro.
+            // O SyncWorker tentará novamente no próximo ciclo.
+            System.err.println("Erro ao buscar pendentes de sync: " + e.getMessage());
+        }
+
+        return pendentes;
+    }
+
+    @Override
+    public void marcarComoSincronizado(long id) throws SQLException {
+        String sql = "UPDATE pedido_model SET sincronizado = 1 WHERE id = ?";
+
+        try (Connection conn       = ConnectionFactory.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, id);
+            int linhasAfetadas = pstmt.executeUpdate();
+
+            if (linhasAfetadas == 0) {
+                throw new SQLException(
+                        "marcarComoSincronizado: nenhuma linha atualizada para id=" + id);
+            }
+        }
+    }
+    private PedidoModel reconstruirPedido(ResultSet rs) throws SQLException {
+        String nomeCliente = rs.getString("cliente");
+        String entregador  = rs.getString("entregador");
+
+        TipoVenda tipoVenda;
+        try {
+            tipoVenda = TipoVenda.valueOf(rs.getString("tipo_venda"));
+        } catch (IllegalArgumentException e) {
+            throw new SQLException(
+                    "Valor inválido para TipoVenda: '" + rs.getString("tipo_venda") + "'", e);
+        }
+
+        return new PedidoModel(nomeCliente, entregador, tipoVenda);
+    }
+
+    private void carregarBarris(Connection conn, String sql, long pedidoId, PedidoModel pedido)
+            throws SQLException {
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, pedidoId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    pedido.adicionarBarril(
+                            rs.getString("codigo_barril"),
+                            TipoChopp.valueOf(rs.getString("tipo_chopp")),
+                            CapacidadeBarril.fromLitros(rs.getInt("capacidade")),
+                            rs.getDouble("preco_venda"),
+                            rs.getInt("consignado") == 1
+                    );
+                }
+            }
+        }
     }
 }

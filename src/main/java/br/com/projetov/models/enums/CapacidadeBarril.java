@@ -6,5 +6,16 @@ public enum CapacidadeBarril {
 
     private final int litros;
     CapacidadeBarril(int litros) { this.litros = litros; }
+
     public int getLitros() { return litros; }
+
+    public static  CapacidadeBarril fromLitros(int litros){
+        for (CapacidadeBarril c : values()){
+            if (c.litros == litros ) return c;
+        }
+        throw new IllegalArgumentException(
+                "Capacidade De Barril desconhecida para " + litros + " litros."
+        );
+    }
+
 }

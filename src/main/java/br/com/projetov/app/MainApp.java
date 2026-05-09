@@ -2,7 +2,12 @@ package br.com.projetov.app;
 
 
 import br.com.projetov.config.GlobalExceptionHandler;
+import br.com.projetov.repository.PedidoRepository;
+import br.com.projetov.repository.PedidoRepositorySQLite;
+import br.com.projetov.repository.SheetsRepository;
+import br.com.projetov.sync.SyncWorker;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 
@@ -10,11 +15,29 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
-//    @Override
-//    public void init() throws Exception {
-//        //Executando antes da janela abrir
-//        SqliteConfig.inicializarBanco();
-//    }
+    private SyncWorker syncWorker;
+
+    @Override
+    public void init(){
+        PedidoRepositorySQLite localRepository = new PedidoRepositorySQLite();
+        SheetsRepository       cloudRepository = new SheetsRepository();
+
+        syncWorker = new SyncWorker(localRepository, cloudRepository);
+        syncWorker.iniciar();
+    }
+
+    @Override
+    public void stop(){
+        if (syncWorker != null){
+            syncWorker.encerrar();
+        }
+        Platform.exit();
+        System.exit(0);
+    }
+
+    public static void main(String[] args) {
+        launch();
+    }
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -31,14 +54,4 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
-    @Override
-    public void stop() {
-        // Garante que o processo Java encerre totalmente ao fechar a janela
-        javafx.application.Platform.exit();
-        System.exit(0);
-
-    }
 }
