@@ -1,8 +1,8 @@
 package br.com.projetov.sync;
 
-import br.com.projetov.models.logistica.BarrilPedido;
-import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.models.logistica.pedido.PedidoPendente;
+import br.com.projetov.models.pedido.BarrilPedido;
+import br.com.projetov.models.pedido.PedidoModel;
+import br.com.projetov.models.pedido.PedidoPendente;
 import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.SheetsRepository;
 
@@ -42,6 +42,7 @@ public class SyncWorker {
      * @param localRepository fonte da verdade (SQLite)
      * @param cloudRepository destino de sync (Google Sheets)
      */
+
     public SyncWorker(PedidoRepository localRepository, SheetsRepository cloudRepository) {
         this.localRepository = localRepository;
         this.cloudRepository = cloudRepository;

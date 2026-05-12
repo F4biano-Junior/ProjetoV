@@ -2,10 +2,10 @@ package br.com.projetov.service;
 
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
-import br.com.projetov.models.logistica.BarrilPedido;
-import br.com.projetov.models.logistica.pedido.PedidoHistorico;
-import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.models.logistica.pedido.ResumoHoje;
+import br.com.projetov.models.pedido.BarrilPedido;
+import br.com.projetov.models.pedido.PedidoHistorico;
+import br.com.projetov.models.pedido.PedidoModel;
+import br.com.projetov.models.relatorio.ResumoHoje;
 import br.com.projetov.repository.PedidoRepository;
 
 import br.com.projetov.repository.SheetsRepository;

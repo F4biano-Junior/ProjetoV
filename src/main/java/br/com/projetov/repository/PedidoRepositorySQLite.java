@@ -4,11 +4,11 @@ import br.com.projetov.config.ConnectionFactory;
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
-import br.com.projetov.models.logistica.BarrilPedido;
-import br.com.projetov.models.logistica.pedido.PedidoHistorico;
-import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.models.logistica.pedido.PedidoPendente;
-import br.com.projetov.models.logistica.pedido.ResumoHoje;
+import br.com.projetov.models.pedido.BarrilPedido;
+import br.com.projetov.models.pedido.PedidoHistorico;
+import br.com.projetov.models.pedido.PedidoModel;
+import br.com.projetov.models.pedido.PedidoPendente;
+import br.com.projetov.models.relatorio.ResumoHoje;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -108,7 +108,8 @@ public class PedidoRepositorySQLite implements PedidoRepository {
     @Override
     public List<PedidoHistorico> buscarHistoricoPedidos() {
         String sqlPedidos = "SELECT id, cliente, entregador, tipo_venda, data_hora, sincronizado " +
-                "FROM pedido_model ORDER BY data_hora DESC, id DESC";
+                "FROM pedido_model " +
+                "ORDER BY data_hora DESC, id DESC LIMIT 50";
         String sqlBarris = "SELECT codigo_barril, tipo_chopp, capacidade, " +
                 "       preco_venda, consignado " +
                 "FROM barris_pedido WHERE pedido_id = ?";
@@ -143,27 +144,30 @@ public class PedidoRepositorySQLite implements PedidoRepository {
 
     @Override
     public ResumoHoje buscarResumoHoje() {
-        String sql = "SELECT COALESCE(SUM(b.capacidade), 0) AS litros, " +
-                "COALESCE(SUM(b.capacidade * b.preco_venda), 0.0) AS vendas " +
-                "FROM pedido_model p " +
-                "JOIN barris_pedido b ON b.pedido_id = p.id " +
-                "WHERE date(replace(p.data_hora, 'T', ' ')) = date('now', 'localtime')";
+        String sql =
+                "SELECT " +
+                        "    COALESCE(SUM(b.capacidade), 0)               AS total_litros, " +
+                        "    COALESCE(SUM(b.capacidade * b.preco_venda), 0) AS total_faturado, " +
+                        "    COUNT(DISTINCT p.id)                          AS qtd_pedidos " +
+                        "FROM barris_pedido b " +
+                        "JOIN pedido_model p ON b.pedido_id = p.id " +
+                        "WHERE DATE(p.data_hora) = DATE('now', 'localtime')";
 
         try (Connection conn = ConnectionFactory.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             Statement  stmt = conn.createStatement();
+             ResultSet  rs   = stmt.executeQuery(sql)) {
 
             if (rs.next()) {
                 return new ResumoHoje(
                         rs.getInt("litros"),
-                        rs.getDouble("vendas")
+                        rs.getDouble("vendas"),
+                        rs.getInt("Pedidos")
                 );
             }
         } catch (SQLException e) {
             System.err.println("Erro ao buscar resumo do dia: " + e.getMessage());
         }
-
-        return new ResumoHoje(0, 0.0);
+        return new ResumoHoje(0, 0.0, 0);
     }
 
     @Override

@@ -3,10 +3,10 @@ package br.com.projetov.controller;
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
-import br.com.projetov.models.logistica.BarrilPedido;
-import br.com.projetov.models.logistica.pedido.PedidoHistorico;
-import br.com.projetov.models.logistica.pedido.PedidoModel;
-import br.com.projetov.models.logistica.pedido.ResumoHoje;
+import br.com.projetov.models.pedido.BarrilPedido;
+import br.com.projetov.models.pedido.PedidoHistorico;
+import br.com.projetov.models.pedido.PedidoModel;
+import br.com.projetov.models.relatorio.ResumoHoje;
 import br.com.projetov.repository.PedidoRepository;
 import br.com.projetov.repository.PedidoRepositorySQLite;
 import br.com.projetov.repository.SheetsRepository;
@@ -54,7 +54,7 @@ public class PedidoController implements Initializable {
     @FXML
     private ComboBox<TipoVenda> cmbTipoVenda;
     @FXML
-    private TableView<BarrilPedido> tableBarris;
+    private TableView<BarrilPedido> tabelaBarris;
     @FXML
     private TableColumn<BarrilPedido, String> colCodigo;
     @FXML
@@ -126,7 +126,7 @@ public class PedidoController implements Initializable {
 
         configurarTabelaBarris();
         configurarTabelaHistorico();
-        tableBarris.setItems(itensPedido);
+        tabelaBarris.setItems(itensPedido);
         tableHistorico.setItems(pedidosHistorico);
         btnFinalizar.disableProperty().bind(Bindings.isEmpty(itensPedido));
 
@@ -172,7 +172,7 @@ public class PedidoController implements Initializable {
 
     @FXML
     private void handleRemoverBarril() {
-        BarrilPedido barrilSelecionado = tableBarris.getSelectionModel().getSelectedItem();
+        BarrilPedido barrilSelecionado = tabelaBarris.getSelectionModel().getSelectedItem();
         if (barrilSelecionado == null) {
             mostrarAlerta(Alert.AlertType.WARNING, "Nenhum item selecionado",
                     "Selecione um barril na tabela para remover.", "");
@@ -185,7 +185,7 @@ public class PedidoController implements Initializable {
     }
 
     @FXML
-    private void handleFinalizarPedido() {
+    private void finalizarPedido() {
         if (!validarCamposPedido()) {
             return;
         }

@@ -19,26 +19,26 @@ public class GoogleSheetsConfig {
     public static Sheets getSheetsService() throws Exception {
         // 1. Resolve o caminho para a pasta oculta do usuário do SO
         String userHome = System.getProperty("user.home");
-        File credentialsFile = new File(userHome + File.separator + ".projetov" + File.separator + "credentials.json");
+        File credenciais = new File(userHome + File.separator + ".projetov" + File.separator + "credentials.json");
 
         // 2. Validação Amigável: Avisa claramente se o arquivo não estiver lá
-        if (!credentialsFile.exists()) {
+        if (!credenciais.exists()) {
             throw new IllegalStateException("FALHA DE SEGURANÇA: Arquivo de credenciais não encontrado. " +
-                    "Por favor, coloque o 'credentials.json' na pasta: " + credentialsFile.getAbsolutePath());
+                    "Por favor, coloque o 'credentials.json' na pasta: " + credenciais.getAbsolutePath());
         }
 
-        GoogleCredentials credentials;
+        GoogleCredentials autenticacaoGoogle;
 
         // 3. Try-with-resources: Garante que o arquivo seja fechado, evitando Memory Leak
-        try (FileInputStream fis = new FileInputStream(credentialsFile)) {
-            credentials = GoogleCredentials.fromStream(fis)
+        try (FileInputStream fis = new FileInputStream(credenciais)) {
+            autenticacaoGoogle = GoogleCredentials.fromStream(fis)
                     .createScoped(List.of("https://www.googleapis.com/auth/spreadsheets"));
         }
 
         // 4. Log de Sucesso seguro (sem expor o conteúdo do arquivo)
-        System.out.println("INFO: Credenciais do Google Sheets carregadas com sucesso de: " + credentialsFile.getAbsolutePath());
+        System.out.println("INFO: Credenciais do Google Sheets carregadas com sucesso de: " + credenciais.getAbsolutePath());
 
-        HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
+        HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(autenticacaoGoogle);
 
         return new Sheets.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),

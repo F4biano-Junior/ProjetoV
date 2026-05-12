@@ -135,7 +135,7 @@
                                                styleClass="muted-label"/>
                                     </HBox>
 
-                                    <TableView fx:id="tableBarris" prefHeight="230">
+                                    <TableView fx:id="tabelaBarris" prefHeight="230">
                                         <placeholder>
                                             <Label text="Nenhum barril adicionado ao pedido"
                                                    styleClass="table-placeholder"/>
@@ -163,7 +163,7 @@
                                         <Button fx:id="btnFinalizar"
                                                 id="btnFinalizar"
                                                 text="Salvar Pedido"
-                                                onAction="#handleFinalizarPedido"
+                                                onAction="#finalizarPedido"
                                                 prefWidth="160"/>
                                     </HBox>
                                 </VBox>

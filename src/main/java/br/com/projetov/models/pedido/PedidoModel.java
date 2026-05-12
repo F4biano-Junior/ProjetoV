@@ -1,9 +1,8 @@
-package br.com.projetov.models.logistica.pedido;
+package br.com.projetov.models.pedido;
 
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
 import br.com.projetov.models.enums.TipoVenda;
-import br.com.projetov.models.logistica.BarrilPedido;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

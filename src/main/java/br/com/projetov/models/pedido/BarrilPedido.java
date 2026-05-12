@@ -1,4 +1,4 @@
-package br.com.projetov.models.logistica;
+package br.com.projetov.models.pedido;
 
 import br.com.projetov.models.enums.CapacidadeBarril;
 import br.com.projetov.models.enums.TipoChopp;
