@@ -36,12 +36,6 @@ public class BarrilPedido {
         return consignado;
     }
 
-    //    // toString para facilitar a visualização no app
-//    @Override
-//    public String toString() {
-//        return String.format("Barril: %s | %s %sL | R$%.2f",
-//                codigoBarril, tipo, capacidade.getLitros(), precoVendido);
-//    }
     // toString para o ListView — deixa claro visualmente
     @Override
     public String toString() {

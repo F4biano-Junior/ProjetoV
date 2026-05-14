@@ -146,9 +146,9 @@ public class PedidoRepositorySQLite implements PedidoRepository {
     public ResumoHoje buscarResumoHoje() {
         String sql =
                 "SELECT " +
-                        "    COALESCE(SUM(b.capacidade), 0)               AS total_litros, " +
-                        "    COALESCE(SUM(b.capacidade * b.preco_venda), 0) AS total_faturado, " +
-                        "    COUNT(DISTINCT p.id)                          AS qtd_pedidos " +
+                        "    COALESCE(SUM(b.capacidade), 0)                 AS litros,            " +
+                        "    COALESCE(SUM(b.capacidade * b.preco_venda), 0) AS vendas,            " +
+                        "    COUNT(DISTINCT p.id)                           AS quantidade_pedidos " +
                         "FROM barris_pedido b " +
                         "JOIN pedido_model p ON b.pedido_id = p.id " +
                         "WHERE DATE(p.data_hora) = DATE('now', 'localtime')";
@@ -161,7 +161,7 @@ public class PedidoRepositorySQLite implements PedidoRepository {
                 return new ResumoHoje(
                         rs.getInt("litros"),
                         rs.getDouble("vendas"),
-                        rs.getInt("Pedidos")
+                        rs.getInt("quantidade_pedidos")
                 );
             }
         } catch (SQLException e) {

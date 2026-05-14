@@ -41,37 +41,6 @@ public class PedidoService {
         this.localRepository = localRepository;
         this.calcular        = calcular;
     }
-
-
-
-    private void sincronizarComGoogleSheets(PedidoModel pedido) {
-            try {
-                // Como a sua Model não tem um getTotal(), calculamos aqui para a planilha
-                double totalPedido = pedido.getBarris().stream()
-                        .mapToDouble(BarrilPedido::getSubtotal)
-                        .sum();
-
-                // Verificamos se existe algum barril consignado no pedido
-                boolean temConsignado = pedido.getBarris().stream()
-                        .anyMatch(BarrilPedido::isConsignado);
-
-                List<List<Object>> linha = List.of(
-                        List.of(
-                                pedido.getDataHora().toString(),
-                                pedido.getNomeCliente(),
-                                pedido.getEntregador(),
-                                pedido.getTipoVenda().name(),
-                                totalPedido,
-                                temConsignado ? "Sim" : "Não"
-                        )
-                );
-
-
-            } catch (Exception e) {
-                System.err.println("Erro na sincronização Google Sheets: " + e.getMessage());
-            }
-        }
-
     public void adicionarBarrilAoPedido(PedidoModel pedido, String codigo,
                                         TipoChopp tipo, CapacidadeBarril cap,
                                         boolean consignado) {

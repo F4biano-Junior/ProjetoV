@@ -6,7 +6,6 @@ import br.com.projetov.config.DatabaseInitializer;
 
 public class Main {
     public static void main(String[] args) {
-
         try {
             DatabaseInitializer.inicializar();
             System.out.println("Banco de dados verificado com sucesso.");
