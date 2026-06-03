@@ -36,7 +36,7 @@ public class SheetsRepository {
                 if (configuredSpreadsheetId != null && !configuredSpreadsheetId.isBlank()) {
                     System.out.println("DEBUG [4]: ID é válido! Tentando criar o Google Sheets Service...");
                     configuredSheetsService = GoogleSheetsConfig.getSheetsService();
-                    System.out.println("DEBUG [5]: Serviço Google foi criado com sucesso? -> " + (configuredSheetsService != null));
+                    System.out.println("DEBUG [5]: Serviço Google foi criado com sucesso? -> " + true);
                 } else {
                     System.out.println("DEBUG [4]: ID da planilha está nulo ou em branco no arquivo!");
                 }
@@ -62,16 +62,6 @@ public class SheetsRepository {
                 .append(spreadsheetId, range, body)
                 .setValueInputOption("USER_ENTERED")
                 .execute();
-    }
-
-    public List<List<Object>> lerDado(String range) throws Exception {
-        if (isSyncDispositive()) {
-            return List.of();
-        }
-        ValueRange response = sheetsServices.spreadsheets().values()
-                .get(spreadsheetId, range)
-                .execute();
-        return response.getValues();
     }
 
     private boolean isSyncDispositive() {

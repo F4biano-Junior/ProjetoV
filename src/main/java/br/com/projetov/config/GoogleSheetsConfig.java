@@ -19,7 +19,7 @@ public class GoogleSheetsConfig {
     public static Sheets getSheetsService() throws Exception {
         // 1. Resolve o caminho para a pasta oculta do usuário do SO
         String userHome = System.getProperty("user.home");
-        File credenciais = new File(userHome + File.separator + ".projetov" + File.separator + "credentials.json");
+        File credenciais = new File(userHome + File.separator + ".credenciais" + File.separator + "projetov" +  File.separator + "credentials.json");
 
         // 2. Validação Amigável: Avisa claramente se o arquivo não estiver lá
         if (!credenciais.exists()) {
